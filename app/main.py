@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import secrets
 from pathlib import Path
@@ -11,9 +12,11 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from . import avatar as AV
 from . import content as C
+from . import feedback as FB
 from . import fight as F
 from . import game as G
 from . import i18n as I
@@ -21,6 +24,21 @@ from . import world as W
 
 BASE = Path(__file__).resolve().parent.parent
 _NS_RE = re.compile(r"^[a-f0-9]{8,64}$")
+
+# Admin panel is off unless BT_ADMIN_KEY is set in the environment.
+ADMIN_KEY = os.environ.get("BT_ADMIN_KEY", "")
+_admin_signer = URLSafeTimedSerializer(ADMIN_KEY or "disabled", salt="bt-admin")
+ADMIN_MAX_AGE = 60 * 60 * 12
+
+
+def _is_admin(request: Request) -> bool:
+    if not ADMIN_KEY:
+        return False
+    tok = request.cookies.get("bt_admin", "")
+    try:
+        return _admin_signer.loads(tok, max_age=ADMIN_MAX_AGE) == "ok"
+    except (BadSignature, Exception):
+        return False
 
 app = FastAPI(title="Born to Fight")
 app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
@@ -34,6 +52,7 @@ async def _visitor_namespace(request: Request, call_next):
     if fresh:
         pid = secrets.token_hex(16)
     G.set_namespace(pid)
+    request.state.ns = pid
     response = await call_next(request)
     if fresh:
         response.set_cookie("bt_player", pid, max_age=60 * 60 * 24 * 730,
@@ -53,8 +72,13 @@ templates.env.globals.update(
     LOOKS=C.LOOKS, DEFAULT_LOOK=C.DEFAULT_LOOK, DIFFICULTY=C.DIFFICULTY, PLANS=C.PLANS,
     GAME_MODES=C.GAME_MODES, SPONSORS=C.SPONSORS, ACHIEVEMENTS=C.ACHIEVEMENTS,
     overall=G.overall, rating=G.rating, career_progress=G.career_progress,
+    injury_risk=G.injury_risk,
     wear=G.wear, avatar=AV.portrait, date_str=W.date_str, ava_url=AV.url,
 )
+
+
+import datetime as _dt
+templates.env.filters["ts"] = lambda t: _dt.datetime.fromtimestamp(float(t or 0)).strftime("%Y-%m-%d %H:%M")
 
 
 def _lang(request: Request) -> str:
@@ -128,6 +152,54 @@ def set_lang(code: str, request: Request):
 def index(request: Request):
     return render("index.html", request, saves=G.list_saves(), active=G.get_active(),
                   legacy=_legacy())
+
+
+# --- Feedback + admin -------------------------------------------------
+
+@app.post("/feedback")
+def feedback_submit(request: Request, text: str = Form(...), kind: str = Form("other"),
+                    page: str = Form("")):
+    ns = getattr(request.state, "ns", "")
+    if FB.recent_rate(ns) >= 5:
+        return Response('{"ok":false,"error":"rate"}', media_type="application/json")
+    fighter = ""
+    st = G.load()
+    if st:
+        fighter = st.get("fighter", {}).get("name", "")
+    ok = FB.add(text, kind, page=page, ns=ns, fighter=fighter)
+    return Response(f'{{"ok":{str(ok).lower()}}}', media_type="application/json")
+
+
+@app.get("/admin/{key}")
+def admin_login(key: str):
+    if not ADMIN_KEY or not secrets.compare_digest(key, ADMIN_KEY):
+        return Response("Not found", status_code=404)
+    resp = RedirectResponse("/admin", status_code=303)
+    resp.set_cookie("bt_admin", _admin_signer.dumps("ok"), max_age=ADMIN_MAX_AGE,
+                    samesite="lax", httponly=True)
+    return resp
+
+
+@app.get("/admin", response_class=HTMLResponse)
+def admin_panel(request: Request):
+    if not _is_admin(request):
+        return Response("Not found", status_code=404)
+    return render("admin.html", request, stats=FB.world_stats(), items=FB.all_items())
+
+
+@app.post("/admin/fb/{ts}")
+def admin_fb_toggle(request: Request, ts: float):
+    if not _is_admin(request):
+        return Response("Not found", status_code=404)
+    FB.toggle_resolved(ts)
+    return redirect("/admin")
+
+
+@app.get("/admin-logout")
+def admin_logout():
+    resp = redirect("/")
+    resp.delete_cookie("bt_admin")
+    return resp
 
 
 @app.get("/avatar.svg")

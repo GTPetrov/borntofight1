@@ -243,6 +243,33 @@ def test_more_tiers_and_bigger_division():
     assert "midkick" in C.ACTIONS
 
 
+def test_feedback_and_admin(monkeypatch):
+    from app import feedback as FB
+    import app.main as M
+    from itsdangerous import URLSafeTimedSerializer
+    monkeypatch.setattr(M, "ADMIN_KEY", "secret123")
+    monkeypatch.setattr(M, "_admin_signer", URLSafeTimedSerializer("secret123", salt="bt-admin"))
+    monkeypatch.setattr(FB, "_file", lambda: G.SAVES_DIR / "_feedback.jsonl")
+
+    c = _client()
+    _create(c)                                   # gives the visitor a career
+    r = c.post("/feedback", data={"text": "Please add southpaw stance switching", "kind": "idea", "page": "/hub"})
+    assert '"ok":true' in r.text
+    items = FB.all_items()
+    assert items and items[0]["text"].startswith("Please add southpaw")
+    assert items[0]["kind"] == "idea"
+
+    # admin gated
+    assert c.get("/admin").status_code == 404
+    assert c.get("/admin/wrong").status_code == 404
+    r = c.get("/admin/secret123")                 # sets cookie, redirects to /admin
+    assert r.status_code == 200 and "open feedback" in r.text
+    assert "Please add southpaw" in r.text
+    ts = items[0]["ts"]
+    c.post(f"/admin/fb/{ts}")
+    assert FB.all_items()[0]["resolved"] is True
+
+
 def test_hall_of_fame_and_legacy():
     f = G.new_state("Legend", "GOAT", 22, "light", "striker", G.default_attrs())["fighter"]
     f["record"] = {"w": 30, "l": 3, "d": 0}

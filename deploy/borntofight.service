@@ -7,6 +7,9 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/home/ubuntu/borntofight
+# Set your own secret. The admin panel then lives at
+#   https://YOURSUB.duckdns.org/admin/<that-secret>
+Environment=BT_ADMIN_KEY=change-me-to-a-long-random-string
 ExecStart=/home/ubuntu/borntofight/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001
 Restart=always
 RestartSec=5

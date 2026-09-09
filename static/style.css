@@ -235,3 +235,66 @@ table td .pill { padding: 1px 6px; }
   .log { font-size: 12px; max-height: 300px; }
   .log .ex .l.big { font-size: 14px; letter-spacing: 1px; padding: 10px; }
 }
+
+/* --- desktop: window never scrolls; content scrolls inside the frame --- */
+@media (min-width: 1000px) and (min-height: 620px) {
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; flex-direction: column; }
+  header.top { flex: 0 0 auto; }
+  main.wrap {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    max-width: 1180px; padding: 14px 18px 26px;
+    scrollbar-width: thin;
+  }
+  main.wrap::-webkit-scrollbar { width: 8px; }
+  main.wrap::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .panel { margin-bottom: 12px; padding: 15px; }
+  .panel h2 { margin-bottom: 9px; }
+
+  /* board pages fill the frame and never spill */
+  body.has-board main.wrap { overflow: hidden; padding-bottom: 14px; }
+  .board { height: 100%; display: grid; gap: 12px; }
+  .board > .col { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scrollbar-width: thin; }
+  .board .panel { margin: 0; }
+  .board .col > .panel.grow { flex: 1; min-height: 0; }
+  .board .panel.grow .log, .board .panel.grow .scroll { flex: 1; min-height: 0; max-height: none; }
+  .board .panel.grow { display: flex; flex-direction: column; }
+
+  .board-hub { grid-template-columns: 1.15fr 1fr 1.05fr; }
+  .board-fight { grid-template-rows: auto 1fr; }
+  .board-fight > .fight-lower { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; }
+  .board-fight .fight-lower > .col { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+}
+
+/* --- feedback dock ------------------------------------------------- */
+#fbdock { position: fixed; right: 0; bottom: 16px; z-index: 60; }
+#fbtoggle {
+  background: linear-gradient(180deg, #ef4552, #d32f3c); color: #fff; border: 0;
+  border-radius: 10px 0 0 10px; padding: 12px 12px; font-size: 18px; cursor: pointer;
+  box-shadow: -3px 3px 16px rgba(0,0,0,.4); writing-mode: horizontal-tb;
+}
+#fbdock.open #fbtoggle { display: none; }
+#fbbox {
+  position: fixed; right: 14px; bottom: 14px; width: min(340px, calc(100vw - 28px));
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.55);
+}
+#fbbox .fbhead { display: flex; justify-content: space-between; align-items: center;
+  font-weight: 800; text-transform: uppercase; letter-spacing: .8px; font-size: 12px; color: var(--accent-2); margin-bottom: 10px; }
+#fbbox .fbhead button { background: 0; border: 0; color: var(--muted); font-size: 20px; cursor: pointer; line-height: 1; }
+#fbform { display: grid; gap: 9px; }
+#fbform label { font-size: 12px; color: var(--muted); display: grid; gap: 4px; }
+#fbform select, #fbform textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 7px; padding: 8px; font: inherit; resize: vertical; }
+#fbthanks { text-align: center; padding: 12px 0; font-weight: 700; }
+@media (max-width: 640px) { #fbdock { bottom: 10px; } #fbtoggle { padding: 10px; font-size: 16px; } }
+
+/* --- admin ------------------------------------------------------- */
+.adm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.adm-stat { background: var(--panel-2); border: 1px solid var(--line); border-radius: 9px; padding: 12px; }
+.adm-stat .n { font-size: 24px; font-weight: 900; }
+.adm-stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.fb-item { border: 1px solid var(--line-soft); border-radius: 9px; padding: 10px 12px; margin-bottom: 8px; background: var(--panel-2); }
+.fb-item.done { opacity: .5; }
+.fb-item .meta { font-size: 11px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 5px; }
+.fb-item .k-bug { color: var(--red); font-weight: 700; }
+.fb-item .k-idea { color: var(--green); font-weight: 700; }

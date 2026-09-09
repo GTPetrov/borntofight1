@@ -1,10 +1,12 @@
 {% extends "base.html" %}
+{% block bodyclass %}has-board{% endblock %}
 {% block body %}
+<div class="board board-fight">
 
 <div class="panel">
   <div class="fight-head">
     <div class="who">
-      <img class="ava-md" src="{{ ava_url(f.look, 96, wear(f)) }}" alt="">
+      <img class="ava-md" src="{{ ava_url(f.look, 80, wear(f)) }}" alt="">
       <div class="nm">You</div><div class="muted">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }} &middot; {{ STYLES[fs.p_style].label }}</div>
       <div class="pill">{{ t("cards") }}: {{ fs.p.cards }}</div>
     </div>
@@ -14,7 +16,7 @@
       {% if fs.p_stance != fs.o_stance %}<div class="pill">ortho vs southpaw</div>{% endif %}
     </div>
     <div class="who">
-      <img class="ava-md" src="{{ ava_url(fs.opp.get('look'), 96, fs.opp.get('wear', 0)) }}" alt="">
+      <img class="ava-md" src="{{ ava_url(fs.opp.get('look'), 80, fs.opp.get('wear', 0)) }}" alt="">
       <div class="nm">{{ fs.o.name }}</div>
       <div class="muted">{{ fs.opp.record.w }}-{{ fs.opp.record.l }} &middot; {{ STYLES[fs.o_style].label }}</div>
       <div class="pill">{{ t("cards") }}: {{ fs.o.cards }}</div>
@@ -24,11 +26,12 @@
   <div class="fbars">
     <div class="lbl"><span>Your health</span><span>{{ bars.p_hp }}</span></div><div class="bar hp"><i style="width:{{ bars.p_hp }}%"></i></div>
     <div class="lbl"><span>Your stamina</span><span>{{ bars.p_sta }}</span></div><div class="bar sta"><i style="width:{{ bars.p_sta }}%"></i></div>
-    <hr style="border-color:var(--line);margin:12px 0">
+    <hr style="border-color:var(--line);margin:10px 0">
     <div class="lbl"><span>{{ fs.o.name }} health</span><span>{{ bars.o_hp }}</span></div><div class="bar hp"><i style="width:{{ bars.o_hp }}%"></i></div>
     <div class="lbl"><span>{{ fs.o.name }} stamina</span><span>{{ bars.o_sta }}</span></div><div class="bar sta"><i style="width:{{ bars.o_sta }}%"></i></div>
   </div>
-  <p style="text-align:center;margin:6px 0 0"><span class="pill">{{ pos }}</span>
+  <p style="text-align:center;margin:6px 0 0">
+    <span class="pill">{{ pos }}</span>
     {% if fs.p.rocked %}<span class="pill loss">{{ t("You're rocked") }}</span>{% endif %}
     {% if fs.o.rocked %}<span class="pill win">{{ t("Opponent rocked") }}</span>{% endif %}
     {% if fs.p.cut and fs.p.cut >= 25 %}<span class="pill loss">you're cut</span>{% endif %}
@@ -39,16 +42,15 @@
   {% if not fs.over and not recap %}
   <div class="roundtally">
     <span class="rt-h">This round</span>
-    <span>sig {{ rstats.p.sig }}–{{ rstats.o.sig }}</span>
-    <span>TD {{ rstats.p.td }}–{{ rstats.o.td }}</span>
-    <span>ctrl {{ rstats.p.ctrl }}–{{ rstats.o.ctrl }}</span>
-    {% if rstats.p.kd or rstats.o.kd %}<span class="rt-kd">KD {{ rstats.p.kd }}–{{ rstats.o.kd }}</span>{% endif %}
-    <span class="rt-pts">score {{ rstats.p_pts }}–{{ rstats.o_pts }}</span>
+    <span>sig {{ rstats.p.sig }}&ndash;{{ rstats.o.sig }}</span>
+    <span>TD {{ rstats.p.td }}&ndash;{{ rstats.o.td }}</span>
+    <span>ctrl {{ rstats.p.ctrl }}&ndash;{{ rstats.o.ctrl }}</span>
+    {% if rstats.p.kd or rstats.o.kd %}<span class="rt-kd">KD {{ rstats.p.kd }}&ndash;{{ rstats.o.kd }}</span>{% endif %}
+    <span class="rt-pts">score {{ rstats.p_pts }}&ndash;{{ rstats.o_pts }}</span>
   </div>
   {% endif %}
-
   {% if fs.scorecard %}
-  <table style="margin-top:10px">
+  <table style="margin-top:8px">
     <tr><th>{{ t("Round") }}</th>{% for s in fs.scorecard %}<td>{{ s.round }}</td>{% endfor %}<th>&Sigma;</th></tr>
     <tr><td>You</td>{% for s in fs.scorecard %}<td>{{ s.p }}</td>{% endfor %}<td><b>{{ fs.p.cards }}</b></td></tr>
     <tr><td>{{ fs.o.name }}</td>{% for s in fs.scorecard %}<td>{{ s.o }}</td>{% endfor %}<td><b>{{ fs.o.cards }}</b></td></tr>
@@ -56,90 +58,99 @@
   {% endif %}
 </div>
 
-{% if recap %}
-<div class="panel">
-  <h2>{% if recap.final %}{{ t("Fight over - decision") }}{% else %}{{ t("Corner after round") }} {{ recap.round }}{% endif %}</h2>
-  <p>{{ t("round for") }}: <b>{{ recap.winner }}</b>{% if recap.dominant %} <span class="pill">10-8</span>{% endif %}
-     &middot; {{ t("cards") }} {{ recap.p_cards }} : {{ recap.o_cards }}</p>
-  <table style="margin:8px 0 12px;max-width:420px">
-    <tr><th></th><th>You</th><th>{{ fs.o.name }}</th></tr>
-    <tr><td>Significant strikes</td><td>{{ recap.p_stats.sig }}</td><td>{{ recap.o_stats.sig }}</td></tr>
-    <tr><td>Damage</td><td>{{ recap.p_stats.dmg }}</td><td>{{ recap.o_stats.dmg }}</td></tr>
-    <tr><td>Takedowns</td><td>{{ recap.p_stats.td }}</td><td>{{ recap.o_stats.td }}</td></tr>
-    <tr><td>Control</td><td>{{ recap.p_stats.ctrl }}</td><td>{{ recap.o_stats.ctrl }}</td></tr>
-    <tr><td>Sub attempts</td><td>{{ recap.p_stats.sub }}</td><td>{{ recap.o_stats.sub }}</td></tr>
-    <tr><td>Knockdowns</td><td>{{ recap.p_stats.kd }}</td><td>{{ recap.o_stats.kd }}</td></tr>
-    <tr><td><b>Round score</b></td><td><b>{{ recap.p_score }}</b></td><td><b>{{ recap.o_score }}</b></td></tr>
-  </table>
-  {% if advice %}<div class="log">{% for a in advice %}<div class="ex"><span class="l">&#129354; {{ a }}</span></div>{% endfor %}</div>{% endif %}
-  {% if recap.can_corner %}
-  <form method="post" action="/fight/corner" style="margin-top:12px">
-    <h3>{{ t("Tactic for round") }} {{ recap.next_round }}</h3>
-    <div class="actions">
-      {% for key, tc in TACTICS.items() %}
-      <label class="pickcard"><input type="radio" name="tactic" value="{{ key }}" {% if key==fs.tactic %}checked{% endif %}>
-        <span><b>{{ tc.label }}</b><br><span class="muted">{{ tc.desc }}</span></span></label>
-      {% endfor %}
+<div class="fight-lower">
+  <div class="col">
+  {% if recap %}
+  <div class="panel grow">
+    <h2>{% if recap.final %}{{ t("Fight over - decision") }}{% else %}{{ t("Corner after round") }} {{ recap.round }}{% endif %}</h2>
+    <div class="scroll">
+      <p>{{ t("round for") }}: <b>{{ recap.winner }}</b>{% if recap.dominant %} <span class="pill">10-8</span>{% endif %}
+         &middot; {{ t("cards") }} {{ recap.p_cards }} : {{ recap.o_cards }}</p>
+      <table style="margin:6px 0 10px">
+        <tr><th></th><th>You</th><th>{{ fs.o.name }}</th></tr>
+        <tr><td>Sig. strikes</td><td>{{ recap.p_stats.sig }}</td><td>{{ recap.o_stats.sig }}</td></tr>
+        <tr><td>Damage</td><td>{{ recap.p_stats.dmg }}</td><td>{{ recap.o_stats.dmg }}</td></tr>
+        <tr><td>Takedowns</td><td>{{ recap.p_stats.td }}</td><td>{{ recap.o_stats.td }}</td></tr>
+        <tr><td>Control</td><td>{{ recap.p_stats.ctrl }}</td><td>{{ recap.o_stats.ctrl }}</td></tr>
+        <tr><td>Sub attempts</td><td>{{ recap.p_stats.sub }}</td><td>{{ recap.o_stats.sub }}</td></tr>
+        <tr><td>Knockdowns</td><td>{{ recap.p_stats.kd }}</td><td>{{ recap.o_stats.kd }}</td></tr>
+        <tr><td><b>Round score</b></td><td><b>{{ recap.p_score }}</b></td><td><b>{{ recap.o_score }}</b></td></tr>
+      </table>
+      {% if advice %}{% for a in advice %}<div style="font-size:13px;padding:3px 0">&#129354; {{ a }}</div>{% endfor %}{% endif %}
+      {% if recap.can_corner %}
+      <form method="post" action="/fight/corner">
+        <h3>{{ t("Tactic for round") }} {{ recap.next_round }}</h3>
+        <div class="actions">
+          {% for key, tc in TACTICS.items() %}
+          <label class="pickcard"><input type="radio" name="tactic" value="{{ key }}" {% if key==fs.tactic %}checked{% endif %}>
+            <span><b>{{ tc.label }}</b><br><span class="muted">{{ tc.desc }}</span></span></label>
+          {% endfor %}
+        </div>
+        <button class="btn big" type="submit" style="margin-top:8px">{{ t("Round") }} {{ recap.next_round }} &rarr;</button>
+      </form>
+      {% else %}
+      <form method="post" action="/fight/continue" style="margin-top:8px"><button class="btn big" type="submit">{{ t("Verdict") }}</button></form>
+      {% endif %}
     </div>
-    <button class="btn big" type="submit" style="margin-top:10px">{{ t("Round") }} {{ recap.next_round }} &rarr;</button>
-  </form>
+  </div>
+  {% elif not fs.over %}
+  <div class="panel grow">
+    <h2>{{ t("Your move") }} <span class="muted" style="font-size:11px;text-transform:none;letter-spacing:0">plan: {{ PLANS[fs.get('plan')].label if fs.get('plan') in PLANS else TACTICS[fs.tactic].label }}</span></h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <form method="post" action="/fight/sim"><input type="hidden" name="scope" value="round">
+        <button class="btn ghost" type="submit">&#9193; {{ t("Simulate round") }}</button></form>
+      <form method="post" action="/fight/sim"><input type="hidden" name="scope" value="end">
+        <button class="btn ghost" type="submit">&#9193;&#9193; {{ t("Simulate to the end") }}</button></form>
+    </div>
+    <div class="scroll">
+      {% if combo %}
+      <div class="seqbox">Combo: <span id="seq" class="muted">{{ t("Combo: pick strikes...") }}</span></div>
+      <div class="actions">
+        {% for a in combo %}
+        <button type="button" class="comboadd" data-a="{{ a }}"><span class="an">{{ ACTIONS[a].label }}</span><span class="ad">{{ ACTIONS[a].desc }}</span></button>
+        {% endfor %}
+      </div>
+      <form method="post" action="/fight/action" style="margin:8px 0 14px">
+        <input type="hidden" name="combo" id="combofield">
+        <button class="btn big" type="submit" id="cbtn" disabled>{{ t("Throw the combo") }}</button>
+        <button class="btn ghost" type="button" onclick="clearSeq()">{{ t("Clear") }}</button>
+      </form>
+      {% endif %}
+      <h3>{{ t("Single actions") }}</h3>
+      <div class="actions">
+        {% for a in actions %}
+        <form method="post" action="/fight/action"><input type="hidden" name="move" value="{{ a }}">
+          <button type="submit" style="width:100%"><span class="an">{{ ACTIONS[a].label }}</span><span class="ad">{{ ACTIONS[a].desc }}</span></button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
   {% else %}
-  <form method="post" action="/fight/continue" style="margin-top:12px"><button class="btn big" type="submit">{{ t("Verdict") }}</button></form>
+  <div class="panel"><a class="btn big" href="/fight/result">{{ t("See result") }}</a></div>
   {% endif %}
-</div>
-{% elif not fs.over %}
-<div class="panel">
-  <h2>{{ t("Your move") }} <span class="muted" style="font-size:11px;text-transform:none;letter-spacing:0">plan: {{ PLANS[fs.get('plan')].label if fs.get('plan') in PLANS else TACTICS[fs.tactic].label }}</span></h2>
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
-    <form method="post" action="/fight/sim"><input type="hidden" name="scope" value="round">
-      <button class="btn ghost" type="submit">&#9193; {{ t("Simulate round") }}</button></form>
-    <form method="post" action="/fight/sim"><input type="hidden" name="scope" value="end">
-      <button class="btn ghost" type="submit">&#9193;&#9193; {{ t("Simulate to the end") }}</button></form>
   </div>
-  {% if combo %}
-  <div id="seqbox" class="seqbox">Combo: <span id="seq" class="muted">{{ t("Combo: pick strikes...") }}</span></div>
-  <div class="actions">
-    {% for a in combo %}
-    <button type="button" class="comboadd" data-a="{{ a }}">
-      <span class="an">{{ ACTIONS[a].label }}</span><span class="ad">{{ ACTIONS[a].desc }}</span>
-    </button>
-    {% endfor %}
-  </div>
-  <form method="post" action="/fight/action" id="comboform" style="margin:10px 0 18px">
-    <input type="hidden" name="combo" id="combofield">
-    <button class="btn big" type="submit" id="cbtn" disabled>{{ t("Throw the combo") }}</button>
-    <button class="btn ghost" type="button" onclick="clearSeq()">{{ t("Clear") }}</button>
-  </form>
-  {% endif %}
-  <h3>{{ t("Single actions") }}</h3>
-  <div class="actions">
-    {% for a in actions %}
-    <form method="post" action="/fight/action">
-      <input type="hidden" name="move" value="{{ a }}">
-      <button type="submit" style="width:100%"><span class="an">{{ ACTIONS[a].label }}</span><span class="ad">{{ ACTIONS[a].desc }}</span></button>
-    </form>
-    {% endfor %}
-  </div>
-</div>
-{% else %}
-<div class="panel"><a class="btn big" href="/fight/result">{{ t("See result") }}</a></div>
-{% endif %}
 
-<div class="panel">
-  <h2>{{ t("The fight") }}</h2>
-  <div class="log">
-    {% for ex in fs.log %}
-    <div class="ex"><span class="tag">R{{ ex.round }} &middot; {{ t("exchange") }} {{ ex.exch }}</span>
-      {% for l in ex.lines %}<span class="l {% if '>>>' in l or 'SUBMISSION' in l %}big{% endif %}">{{ l }}</span>{% endfor %}
+  <div class="col">
+    <div class="panel grow">
+      <h2>{{ t("The fight") }}</h2>
+      <div class="log">
+        {% for ex in fs.log %}
+        <div class="ex"><span class="tag">R{{ ex.round }} &middot; {{ t("exchange") }} {{ ex.exch }}{% if ex.get('sim') %} &middot; sim{% endif %}</span>
+          {% for l in ex.lines %}<span class="l {% if '>>>' in l %}big{% endif %}">{{ l }}</span>{% endfor %}
+        </div>
+        {% else %}<div class="ex"><span class="l muted">And we're underway.</span></div>{% endfor %}
+      </div>
     </div>
-    {% else %}<div class="ex"><span class="l muted">And we're underway.</span></div>{% endfor %}
   </div>
 </div>
 
+</div>
 <script>
 const MAX={{ C.COMBO_MAX }};
 let seq=[];
-function draw(){document.getElementById('seq').textContent=seq.length?seq.map(x=>document.querySelector('.comboadd[data-a="'+x+'"] .an').textContent).join(' > '):'{{ t("Combo: pick strikes...") }}';
+function draw(){const el=document.getElementById('seq');if(!el)return;
+  el.textContent=seq.length?seq.map(x=>document.querySelector('.comboadd[data-a="'+x+'"] .an').textContent).join(' > '):'{{ t("Combo: pick strikes...") }}';
   document.getElementById('combofield').value=seq.join(',');
   document.getElementById('cbtn').disabled=!seq.length;}
 function clearSeq(){seq=[];draw();}

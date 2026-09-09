@@ -323,6 +323,14 @@ def set_plan(state: dict, plan: str) -> None:
         state["fighter"]["next_plan"] = plan
 
 
+def injury_risk(f: dict, kind: str) -> int:
+    """Effective injury chance (%) for a training session - matches train()."""
+    t = C.TRAININGS[kind]
+    risk = t.get("risk", 0.05) + (0.03 if f["age"] >= 34 else 0)
+    risk *= max(0.4, 1 - f["staff"].get("nutrition", 0) * 0.2)
+    return round(risk * 100)
+
+
 def fight_stakes(state: dict) -> dict:
     f = state["fighter"]
     c = f.get("contract") or C.TIERS[f["tier"]]

@@ -6,7 +6,7 @@
   <title>{% block title %}Born to Fight{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
+<body class="{% block bodyclass %}{% endblock %}">
 <header class="top">
   <div class="wrap">
     <h1><a href="/" style="color:inherit">Born to <span>Fight</span></a></h1>
@@ -24,5 +24,45 @@
 <main class="wrap">
   {% block body %}{% endblock %}
 </main>
+
+<div id="fbdock">
+  <button id="fbtoggle" type="button" title="Send feedback or an idea">&#128172;</button>
+  <div id="fbbox" hidden>
+    <div class="fbhead">Feedback &amp; ideas <button type="button" id="fbclose">&times;</button></div>
+    <form id="fbform">
+      <label>Type
+        <select name="kind">
+          <option value="idea">Idea / suggestion</option>
+          <option value="bug">Bug</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <textarea name="text" required maxlength="2000" rows="4"
+        placeholder="What would make this better? Hit a bug? Tell me here."></textarea>
+      <input type="hidden" name="page" id="fbpage">
+      <button class="btn" type="submit">Send</button>
+    </form>
+    <p id="fbthanks" hidden>Thanks - noted. &#128591;</p>
+  </div>
+</div>
+<script>
+(function(){
+  var dock=document.getElementById('fbdock'), box=document.getElementById('fbbox'),
+      form=document.getElementById('fbform'), thanks=document.getElementById('fbthanks');
+  function open(){box.hidden=false;document.getElementById('fbpage').value=location.pathname;dock.classList.add('open');}
+  function close(){box.hidden=true;dock.classList.remove('open');}
+  document.getElementById('fbtoggle').onclick=function(){box.hidden?open():close();};
+  document.getElementById('fbclose').onclick=close;
+  form.addEventListener('submit',async function(e){
+    e.preventDefault();
+    try{
+      await fetch('/feedback',{method:'POST',body:new URLSearchParams(new FormData(form)),
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+    }catch(err){}
+    form.hidden=true; thanks.hidden=false;
+    setTimeout(function(){close();form.reset();form.hidden=false;thanks.hidden=true;},1600);
+  });
+})();
+</script>
 </body>
 </html>

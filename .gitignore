@@ -4,3 +4,4 @@ __pycache__/
 .idea/
 save.json
 saves/
+_feedback.jsonl
