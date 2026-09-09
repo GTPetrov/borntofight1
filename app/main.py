@@ -9,15 +9,17 @@ import secrets
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from itsdangerous import BadSignature, URLSafeTimedSerializer
+from markupsafe import Markup
 
 from . import avatar as AV
 from . import content as C
 from . import feedback as FB
 from . import fight as F
+from . import flags as FL
 from . import game as G
 from . import i18n as I
 from . import world as W
@@ -27,6 +29,10 @@ _NS_RE = re.compile(r"^[a-f0-9]{8,64}$")
 
 # Admin panel is off unless BT_ADMIN_KEY is set in the environment.
 ADMIN_KEY = os.environ.get("BT_ADMIN_KEY", "")
+# Google AdSense: set BT_ADSENSE_CLIENT to your "ca-pub-XXXXXXXXXXXXXXXX" to switch ads on.
+ADSENSE_CLIENT = os.environ.get("BT_ADSENSE_CLIENT", "").strip()
+ADSENSE_SLOT = os.environ.get("BT_ADSENSE_SLOT", "").strip()   # optional manual unit on the menu page
+CONTACT_EMAIL = os.environ.get("BT_CONTACT_EMAIL", "").strip()
 _admin_signer = URLSafeTimedSerializer(ADMIN_KEY or "disabled", salt="bt-admin")
 ADMIN_MAX_AGE = 60 * 60 * 12
 
@@ -77,7 +83,8 @@ templates.env.globals.update(
     STYLES=C.STYLES, TIERS=C.TIERS, STAFF=C.STAFF, CUTS=C.CUTS, TACTICS=C.TACTICS,
     LOOKS=C.LOOKS, DEFAULT_LOOK=C.DEFAULT_LOOK, DIFFICULTY=C.DIFFICULTY, PLANS=C.PLANS,
     GAME_MODES=C.GAME_MODES, SPONSORS=C.SPONSORS, ACHIEVEMENTS=C.ACHIEVEMENTS, NATIONS=C.NATIONS,
-    flag=lambda e: C.NATIONS.get((e or {}).get("nation", ""), {}).get("flag", ""),
+    flag=lambda e, w=20: Markup(FL.svg((e or {}).get("nation", "") if isinstance(e, dict) else (e or ""), w)),
+    flag_svg=lambda code, w=20: Markup(FL.svg(code, w)),
     overall=G.overall, rating=G.rating, career_progress=G.career_progress,
     injury_risk=G.injury_risk,
     wear=G.wear, avatar=AV.portrait, date_str=W.date_str, ava_url=AV.url,
@@ -96,6 +103,9 @@ def render(name, request, **ctx):
     lang = _lang(request)
     ctx["lang"] = lang
     ctx["t"] = lambda s: I.t(s, lang)
+    ctx.setdefault("adsense", ADSENSE_CLIENT)
+    ctx.setdefault("adsense_slot", ADSENSE_SLOT)
+    ctx.setdefault("contact_email", CONTACT_EMAIL)
     return templates.TemplateResponse(request, name, ctx)
 
 
@@ -159,6 +169,24 @@ def set_lang(code: str, request: Request):
 def index(request: Request):
     return render("index.html", request, saves=G.list_saves(), active=G.get_active(),
                   legacy=_legacy())
+
+
+@app.get("/ads.txt", response_class=PlainTextResponse)
+def ads_txt():
+    if not ADSENSE_CLIENT:
+        return Response("Not found", status_code=404)
+    pub = ADSENSE_CLIENT.replace("ca-pub-", "pub-")
+    return f"google.com, {pub}, DIRECT, f08c47fec0942fa0\n"
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request):
+    return render("privacy.html", request)
+
+
+@app.get("/about", response_class=HTMLResponse)
+def about(request: Request):
+    return render("about.html", request)
 
 
 # --- Feedback + admin -------------------------------------------------

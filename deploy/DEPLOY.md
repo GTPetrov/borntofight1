@@ -130,6 +130,25 @@ nano ~/duckdns/duckdns.sh          # set DOMAIN=YOURSUB and your token
 
 ---
 
+## Google AdSense
+
+1. Apply at <https://adsense.google.com> with `https://YOURSUB.duckdns.org` as the site.
+   The `/privacy` and `/about` pages already exist (AdSense requires them).
+2. Once approved, edit the service (`sudo systemctl edit --full borntofight`) and set
+   under `[Service]`:
+   ```
+   Environment=BT_ADSENSE_CLIENT=ca-pub-XXXXXXXXXXXXXXXX
+   Environment=BT_CONTACT_EMAIL=you@example.com
+   ```
+   then `sudo systemctl restart borntofight`.
+3. That switches on the ad loader (in `<head>` on every page) and serves the required
+   `/ads.txt`. In the AdSense console turn on **Auto ads** and it will place units on
+   the scrolling pages. For a fixed manual unit on the menu page, also set
+   `Environment=BT_ADSENSE_SLOT=<display-unit-id>`.
+4. **EEA/UK**: Google requires a certified Consent Management Platform for European
+   traffic. The built-in banner is a placeholder - add Google's own CMP (or a certified
+   one) from the AdSense "Privacy & messaging" section before serving EU users.
+
 ## Notes
 
 - **RAM**: ~480 MB free. The service runs a single uvicorn worker (~70 MB). Fine.

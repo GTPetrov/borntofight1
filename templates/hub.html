@@ -49,7 +49,29 @@
         <div class="stat-line"><span>{{ t("Brain health") }}</span><b class="{{ 'txt-red' if f.brain<60 }}">{{ f.brain }}</b></div>
         <div class="stat-line"><span>{{ t("Body health") }}</span><b>{{ f.body }}</b></div>
       </div>
-      <p style="margin:8px 0 0;font-size:13px"><a href="/staff">{{ t("Coaching staff") }}</a> &middot; <a href="/sponsors">{{ t("Sponsors") }}</a> &middot; <a href="/division">{{ t("Division") }}</a></p>
+      <p style="margin:8px 0 0;font-size:13px"><a href="/staff">{{ t("Coaching staff") }}</a> &middot; <a href="/division">{{ t("Division") }}</a></p>
+    </div>
+
+    <div class="panel grow">
+      <h2>{{ t("Sponsors") }}</h2>
+      <div class="scroll">
+        {% set cur = SPONSORS|selectattr('id','equalto',f.sponsor)|first %}
+        {% if cur %}
+        <div class="stat-line"><span>{{ t("Current deal") }}</span><b>{{ cur.name }}</b></div>
+        <div class="stat-line"><span>{{ t("per fight") }}</span><b>+${{ cur.per_fight }}</b></div>
+        <div class="stat-line"><span>{{ t("purse cut") }}</span><b>{{ (cur.cut*100)|round|int }}%</b></div>
+        {% else %}
+        <p class="muted" style="font-size:13px">No sponsor. Build popularity to unlock deals.</p>
+        {% endif %}
+        <h3>Available</h3>
+        {% for s in SPONSORS %}
+        <div class="stat-line" style="{{ 'opacity:.4' if f.hype < s.min_hype }}">
+          <span>{{ s.name }} <span class="muted">({{ s.min_hype }}+)</span></span>
+          <b>{% if f.hype >= s.min_hype %}+${{ s.per_fight }}{% else %}locked{% endif %}</b>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="/sponsors" class="btn ghost" style="margin-top:8px">{{ t("Manage deals") }} &rarr;</a>
     </div>
   </div>
 

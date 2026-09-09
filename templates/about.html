@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}About - Born to Fight{% endblock %}
+{% block body %}
+<div class="panel" style="max-width:760px;margin:0 auto">
+  <h2>About Born to Fight</h2>
+  <p>Born to Fight is a free turn-based MMA career simulator you play in the browser.
+  You build a fighter - attributes, style, nationality, look - then run training camps,
+  hire a coaching team, sign sponsors, and fight your way from the amateur circuit up
+  through six promotions to a world title.</p>
+
+  <p>Fights play out exchange by exchange: pick strikes and combinations, shoot takedowns,
+  work the ground, and adjust your game plan from the corner between rounds. The judges
+  score on real criteria - significant strikes, control, damage, knockdowns. Around you,
+  a living division of rivals fights on its own, the rankings shift, and champions come
+  and go.</p>
+
+  <h3>Features</h3>
+  <ul>
+    <li>Six promotions to climb, a live 16-fighter division, and a pound-for-pound style rating</li>
+    <li>Turn-based fights with combos, corner tactics, cuts and long-term brain health</li>
+    <li>Coaching staff, sponsors, weight management, rivalries with memory</li>
+    <li>Achievements, career records, fight replays, and a Hall of Fame</li>
+    <li>Retire and coach a protege who inherits part of your legacy</li>
+    <li>English and Polish</li>
+  </ul>
+
+  <h3>Feedback</h3>
+  <p>There's a feedback button on every page - ideas and bug reports are welcome.
+  {% if contact_email %}You can also reach out at <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.{% endif %}</p>
+
+  <p style="margin-top:16px"><a href="/">&larr; Back to the game</a> &middot; <a href="/privacy">Privacy policy</a></p>
+</div>
+{% endblock %}

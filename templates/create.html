@@ -1,83 +1,104 @@
 {% extends "base.html" %}
+{% block bodyclass %}has-board{% endblock %}
 {% block body %}
-<form method="post" action="/create">
-<div class="panel">
-  <h2>{{ t("New fighter") }}
-    <a href="/create" class="btn ghost" style="float:right;padding:6px 12px">&#127922; {{ t("Randomize") }}</a></h2>
-  {% if legacy %}<p class="pill gold">Protege of {{ legacy.mentor }} - point pool boosted by {{ legacy.bonus_points }}</p>{% endif %}
-  {% if error %}<p class="pill loss">{{ error }}</p>{% endif %}
-  <div class="grid c2">
-    <label>{{ t("Name") }}<br><input name="name" required class="tin" value="{{ seed.name }}"></label>
-    <label>{{ t("Nickname") }}<br><input name="nickname" class="tin" value="{{ seed.nickname }}"></label>
-    <label>{{ t("Age") }} (18-33)<br><input name="age" type="number" value="{{ seed.age }}" min="18" max="33" class="tin"></label>
-    <label>{{ t("Weight class") }}<br>
-      <select name="weight" class="tin">
-        {% for key, label, _ in weights %}<option value="{{ key }}" {% if key==seed.weight %}selected{% endif %}>{{ label }}</option>{% endfor %}
-      </select>
-    </label>
-    <label>{{ t("Nationality") }}<br>
-      <select name="nation" class="tin">
-        {% for code, n in NATIONS.items() %}<option value="{{ code }}" {% if code==seed.nation %}selected{% endif %}>{{ n.flag }} {{ n.name }}</option>{% endfor %}
-      </select>
-    </label>
-  </div>
-  <div class="grid c2" style="margin-top:10px">
-    <label>{{ t("Difficulty") }}<br>
-      <select name="difficulty" class="tin" id="diff">
-        {% for key, d in DIFFICULTY.items() %}<option value="{{ key }}" {% if key==(seed.difficulty or 'normal') %}selected{% endif %}>{{ d.label }} - {{ d.desc }}</option>{% endfor %}
-      </select>
-    </label>
-    <label>{{ t("Game mode") }}<br>
-      <select name="mode" class="tin">
-        {% for key, m in GAME_MODES.items() %}<option value="{{ key }}" {% if key==(seed.mode or 'standard') %}selected{% endif %}>{{ m.label }} - {{ m.desc }}</option>{% endfor %}
-      </select>
-    </label>
-  </div>
-</div>
+<form method="post" action="/create" style="height:100%">
+<div class="board board-create">
 
-<div class="panel">
-  <h2>{{ t("Appearance") }}</h2>
-  <div class="look-wrap">
-    <img id="ava" class="ava-lg" src="/avatar.svg" alt="fighter portrait">
-    <div class="look-controls">
-      {% for key, opts in LOOKS.items() %}
-      <label>{{ t({'skin':'Skin','hair':'Hair','hair_color':'Hair colour','beard':'Beard','build':'Build','trunks':'Trunks','stance':'Stance'}[key]) }}<br>
-        <select class="tin lookf" data-k="{{ key }}" name="look_{{ key }}">
-          {% for label, code in opts %}<option value="{{ code }}" {% if code==seed.look[key] %}selected{% endif %}>{{ label }}</option>{% endfor %}
-        </select>
-      </label>
-      {% endfor %}
+  <div class="col">
+    <div class="panel">
+      <h2>{{ t("New fighter") }}</h2>
+      {% if legacy %}<p class="pill gold">Protege of {{ legacy.mentor }} (+{{ legacy.bonus_points }} pts)</p>{% endif %}
+      {% if error %}<p class="pill loss">{{ error }}</p>{% endif %}
+      <div class="scroll">
+        <div class="grid c2" style="gap:8px">
+          <label style="font-size:12px;color:var(--muted)">{{ t("Name") }}<input name="name" required class="tin" value="{{ seed.name }}"></label>
+          <label style="font-size:12px;color:var(--muted)">{{ t("Nickname") }}<input name="nickname" class="tin" value="{{ seed.nickname }}"></label>
+          <label style="font-size:12px;color:var(--muted)">{{ t("Age") }} (18-33)<input name="age" type="number" value="{{ seed.age }}" min="18" max="33" class="tin"></label>
+          <label style="font-size:12px;color:var(--muted)">{{ t("Weight class") }}
+            <select name="weight" class="tin">
+              {% for key, label, _ in weights %}<option value="{{ key }}" {% if key==seed.weight %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+          </label>
+          <label style="font-size:12px;color:var(--muted)">{{ t("Difficulty") }}
+            <select name="difficulty" class="tin">
+              {% for key, d in DIFFICULTY.items() %}<option value="{{ key }}" {% if key==(seed.difficulty or 'normal') %}selected{% endif %}>{{ d.label }}</option>{% endfor %}
+            </select>
+          </label>
+          <label style="font-size:12px;color:var(--muted)">{{ t("Game mode") }}
+            <select name="mode" class="tin">
+              {% for key, m in GAME_MODES.items() %}<option value="{{ key }}" {% if key==(seed.mode or 'standard') %}selected{% endif %}>{{ m.label }}</option>{% endfor %}
+            </select>
+          </label>
+        </div>
+        <h3>{{ t("Nationality") }}</h3>
+        <div class="natgrid">
+          {% for code, n in NATIONS.items() %}
+          <label title="{{ n.name }}">
+            <input type="radio" name="nation" value="{{ code }}" {% if code==seed.nation %}checked{% endif %}>
+            {{ flag_svg(code, 22) }}<span class="nn">{{ code }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="panel">
-  <h2>{{ t("Fighting style") }}</h2>
-  <div class="grid c2">
-    {% for key, st in STYLES.items() %}
-    <label class="pickcard">
-      <input type="radio" name="style" value="{{ key }}" {% if key==seed.style %}checked{% endif %}>
-      <span><b>{{ st.label }}</b><br><span class="muted">{{ st.desc }}</span></span>
-    </label>
-    {% endfor %}
-  </div>
-</div>
-
-<div class="panel">
-  <h2>{{ t("Attributes") }}</h2>
-  <p class="muted">{{ t("Base") }} {{ base }}. <b id="pool">{{ points }}</b> {{ t("points left") }}. {{ cap }} {{ t("max per attribute") }}.</p>
-  {% for k in ATTRS %}
-  <div class="attr-row">
-    <div><b>{{ ATTR_LABELS[k] }}</b><br><span class="muted" style="font-size:11px">{{ ATTR_DESC[k] }}</span></div>
-    <div class="counter">
-      <button type="button" onclick="bump('{{ k }}',-1)">&minus;</button>
-      <input readonly id="in_{{ k }}" name="attr_{{ k }}" value="{{ attrs[k] }}">
-      <button type="button" onclick="bump('{{ k }}',1)">+</button>
+  <div class="col">
+    <div class="panel grow">
+      <h2>{{ t("Appearance") }}</h2>
+      <div class="scroll">
+        <div style="text-align:center;margin-bottom:10px">
+          <img id="ava" class="ava-lg" src="/avatar.svg" alt="fighter portrait" style="width:150px;height:150px">
+        </div>
+        <div class="grid c2" style="gap:8px">
+          {% for key, opts in LOOKS.items() %}
+          <label style="font-size:12px;color:var(--muted)">{{ t({'skin':'Skin','hair':'Hair','hair_color':'Hair colour','beard':'Beard','build':'Build','trunks':'Trunks','stance':'Stance'}[key]) }}
+            <select class="tin lookf" data-k="{{ key }}" name="look_{{ key }}">
+              {% for label, code in opts %}<option value="{{ code }}" {% if code==seed.look[key] %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
     </div>
-    <div class="bar"><i id="bar_{{ k }}" style="width:{{ attrs[k] }}%"></i></div>
   </div>
-  {% endfor %}
-  <button class="btn big" type="submit" id="go" style="margin-top:10px">{{ t("Start career") }}</button>
+
+  <div class="col">
+    <div class="panel">
+      <h2>{{ t("Fighting style") }}</h2>
+      <div class="scroll" style="display:grid;gap:6px">
+        {% for key, st in STYLES.items() %}
+        <label class="pickcard" style="padding:8px 10px">
+          <input type="radio" name="style" value="{{ key }}" {% if key==seed.style %}checked{% endif %}>
+          <span><b>{{ st.label }}</b><br><span class="muted" style="font-size:11px">{{ st.desc }}</span></span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="panel grow">
+      <h2>{{ t("Attributes") }} &mdash; <b id="pool">{{ points }}</b> {{ t("points left") }}</h2>
+      <div class="scroll">
+        {% for k in ATTRS %}
+        <div class="attr-row" style="grid-template-columns:78px 1fr 34px">
+          <b style="font-size:13px">{{ ATTR_LABELS[k] }}</b>
+          <div class="counter">
+            <button type="button" onclick="bump('{{ k }}',-1)">&minus;</button>
+            <input readonly id="in_{{ k }}" name="attr_{{ k }}" value="{{ attrs[k] }}">
+            <button type="button" onclick="bump('{{ k }}',1)">+</button>
+          </div>
+          <div class="bar"><i id="bar_{{ k }}" style="width:{{ attrs[k] }}%"></i></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="actbar">
+    <button class="btn big" type="submit" id="go">{{ t("Start career") }}</button>
+    <a href="/create" class="btn ghost">&#127922; {{ t("Randomize") }}</a>
+    <a href="/" class="btn ghost">{{ t("Menu") }}</a>
+  </div>
+
 </div>
 </form>
 <script>

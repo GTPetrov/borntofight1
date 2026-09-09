@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Born to Fight{% endblock %}</title>
   <link rel="stylesheet" href="/static/style.css">
+  {% if adsense %}
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense }}" crossorigin="anonymous"></script>
+  {% endif %}
 </head>
 <body class="{% block bodyclass %}{% endblock %}">
 <header class="top">
@@ -24,6 +27,19 @@
 <main class="wrap">
   {% block body %}{% endblock %}
 </main>
+<footer class="foot">
+  <span>&copy; Born to Fight</span>
+  <a href="/about">{{ t("About") }}</a>
+  <a href="/privacy">{{ t("Privacy") }}</a>
+</footer>
+
+{% if adsense %}
+<div id="consent" hidden>
+  <span>This site uses cookies and shows ads to keep the lights on. See the
+    <a href="/privacy">privacy policy</a>.</span>
+  <button id="consent-ok" class="btn">OK</button>
+</div>
+{% endif %}
 
 <div id="fbdock">
   <button id="fbtoggle" type="button" title="Send feedback or an idea">&#128172;</button>
@@ -47,21 +63,27 @@
 </div>
 <script>
 (function(){
-  var dock=document.getElementById('fbdock'), box=document.getElementById('fbbox'),
-      form=document.getElementById('fbform'), thanks=document.getElementById('fbthanks');
-  function open(){box.hidden=false;document.getElementById('fbpage').value=location.pathname;dock.classList.add('open');}
-  function close(){box.hidden=true;dock.classList.remove('open');}
+  var box=document.getElementById('fbbox'), form=document.getElementById('fbform'),
+      thanks=document.getElementById('fbthanks'), dock=document.getElementById('fbdock');
+  function open(){box.hidden=false;document.getElementById('fbpage').value=location.pathname;}
+  function close(){box.hidden=true;}
   document.getElementById('fbtoggle').onclick=function(){box.hidden?open():close();};
   document.getElementById('fbclose').onclick=close;
   form.addEventListener('submit',async function(e){
     e.preventDefault();
-    try{
-      await fetch('/feedback',{method:'POST',body:new URLSearchParams(new FormData(form)),
-        headers:{'Content-Type':'application/x-www-form-urlencoded'}});
-    }catch(err){}
+    try{ await fetch('/feedback',{method:'POST',body:new URLSearchParams(new FormData(form)),
+      headers:{'Content-Type':'application/x-www-form-urlencoded'}}); }catch(err){}
     form.hidden=true; thanks.hidden=false;
     setTimeout(function(){close();form.reset();form.hidden=false;thanks.hidden=true;},1600);
   });
+  var c=document.getElementById('consent');
+  if(c){
+    try{ if(document.cookie.indexOf('bt_consent=1')<0) c.hidden=false; }catch(e){ c.hidden=false; }
+    document.getElementById('consent-ok').onclick=function(){
+      try{ document.cookie='bt_consent=1;path=/;max-age='+(60*60*24*365)+';samesite=lax'; }catch(e){}
+      c.hidden=true;
+    };
+  }
 })();
 </script>
 </body>

@@ -166,6 +166,30 @@ def test_visitor_isolation(monkeypatch):
     assert "Bravo Two" in b.get("/").text and "Bravo Two" not in a.get("/").text
 
 
+def test_static_pages_and_ads(monkeypatch):
+    import app.main as M
+    c = _client()
+    assert c.get("/privacy").status_code == 200
+    assert "Privacy Policy" in c.get("/privacy").text
+    assert c.get("/about").status_code == 200
+    assert c.get("/ads.txt").status_code == 404          # off by default
+    monkeypatch.setattr(M, "ADSENSE_CLIENT", "ca-pub-9999999999999999")
+    r = c.get("/ads.txt")
+    assert r.status_code == 200 and "pub-9999999999999999" in r.text
+    assert "googlesyndication.com" in c.get("/").text     # loader injected when configured
+
+
+def test_nation_flags_render():
+    from app import flags as FL
+    for code in C.NATION_CODES:
+        s = FL.svg(code)
+        assert s.startswith("<svg") and "viewBox" in s
+    c = _client()
+    _create(c, nation="GEO")
+    assert G.load()["fighter"]["nation"] == "GEO"
+    assert "<svg class=\"flag\"" in c.get("/hub").text
+
+
 def test_avatar_endpoint():
     c = _client()
     r = c.get("/avatar.svg", params={"skin": "#8d5524", "hair": "mohawk", "beard": "full",

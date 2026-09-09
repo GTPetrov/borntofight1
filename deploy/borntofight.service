@@ -10,6 +10,12 @@ WorkingDirectory=/home/ubuntu/borntofight
 # Set your own secret. The admin panel then lives at
 #   https://YOURSUB.duckdns.org/admin/<that-secret>
 Environment=BT_ADMIN_KEY=change-me-to-a-long-random-string
+# Google AdSense (optional): once your account is approved, put your publisher id here.
+# This turns on the ad loader + /ads.txt. Enable "Auto ads" in the AdSense console, or
+# also set BT_ADSENSE_SLOT to a display-unit id for the manual unit on the menu page.
+#Environment=BT_ADSENSE_CLIENT=ca-pub-XXXXXXXXXXXXXXXX
+#Environment=BT_ADSENSE_SLOT=XXXXXXXXXX
+#Environment=BT_CONTACT_EMAIL=you@example.com
 ExecStart=/home/ubuntu/borntofight/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001
 Restart=always
 RestartSec=5
