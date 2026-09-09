@@ -45,7 +45,7 @@ def make_npc(world, weight: str, tier: int, rank: int, used: set) -> dict:
     return {
         "id": _uid(world),
         "name": name, "nickname": nick, "weight": weight,
-        "style": style_key, "attrs": attrs,
+        "style": style_key, "attrs": attrs, "tier": tier,
         "look": C.random_look(random),
         "wear": random.randint(0, 2),
         "record": {"w": wins, "l": losses, "d": 0},
@@ -158,18 +158,19 @@ def advance(world: dict, player: dict, months: int = C.MONTHS_BETWEEN_FIGHTS) ->
         else:
             news.append(f"{champ['name']} retains the belt against {contender['name']} ({mth}).")
 
+    # most of the division is on the card too - fill the rest of the fight night
     pool = [f for f in active if not f["champion"]]
     random.shuffle(pool)
+    max_pairs = max(3, len(pool) // 2 - 1)
     pairs = 0
     usedids = set()
-    for i in range(len(pool)):
-        if pairs >= 3:
+    for a in pool:
+        if pairs >= max_pairs:
             break
-        a = pool[i]
         if a["id"] in usedids:
             continue
         cand = [b for b in pool if b["id"] not in usedids and b["id"] != a["id"]
-                and abs(b["rank"] - a["rank"]) <= 4]
+                and abs(b["rank"] - a["rank"]) <= 5]
         if not cand:
             continue
         b = random.choice(cand)
@@ -177,8 +178,9 @@ def advance(world: dict, player: dict, months: int = C.MONTHS_BETWEEN_FIGHTS) ->
         wnr, lsr, mth, rnd = quick_sim(a, b)
         _apply_npc_result(wnr, lsr, mth)
         pairs += 1
-        if abs(a["rank"] - b["rank"]) <= 2 or wnr["rank"] > lsr["rank"]:
-            news.append(f"{wnr['name']} beat {lsr['name']} ({mth}, R{rnd}).")
+        if mth in FINISH_METHODS or abs(a["rank"] - b["rank"]) <= 6 or wnr["rank"] > lsr["rank"]:
+            tag = f" ({mth}, R{rnd})" if mth in FINISH_METHODS else f" ({mth})"
+            news.append(f"{wnr['name']} def. {lsr['name']}{tag}.")
 
     for f in list(div.values()):
         if f["is_player"] or f["retired"]:
@@ -323,7 +325,8 @@ def sign(state: dict, offer_id: str) -> dict | None:
 def _player_shadow(f: dict) -> dict:
     return {
         "id": f["id"], "name": f["name"], "nickname": f["nickname"], "weight": f["weight"],
-        "style": f["style"], "attrs": f["attrs"], "record": f["record"],
+        "style": f["style"], "attrs": f["attrs"], "record": f["record"], "tier": f["tier"],
+        "belts": f.get("belts", []), "win_streak": f.get("win_streak", 0),
         "look": f.get("look", C.DEFAULT_LOOK),
         "wear": int(f.get("fights", 0) > 8) + int(f.get("fights", 0) > 20) + int(f.get("brain", 100) < 68),
         "rank": f["rank"], "champion": f["champion"], "age": int(f["age"]),

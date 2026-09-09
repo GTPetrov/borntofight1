@@ -14,7 +14,7 @@
         <div class="stat-line"><span>{{ t("Level") }}</span><b>{{ tier.short }}{% if f.champion %} ({{ t("champ") }}){% endif %}</b></div>
         <div class="stat-line"><span>{{ t("Career earnings") }}</span><b>${{ f.money }}</b></div>
         <div class="stat-line"><span>{{ t("Brain health") }}</span><b class="{{ 'txt-red' if f.brain<60 }}">{{ f.brain }}</b></div>
-        <div class="stat-line"><span>{{ t("Style") }}</span><b>{{ STYLES[f.style].label }}</b></div>
+        <div class="stat-line"><span>{{ t("Style") }} / rating</span><b>{{ STYLES[f.style].label }} &middot; {{ rating(f) }}</b></div>
       </div>
     </div>
   </div>

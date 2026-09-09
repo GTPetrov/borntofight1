@@ -624,7 +624,35 @@ def apply_result(state: dict, result: dict) -> dict:
 
 
 def overall(f: dict) -> int:
+    """Raw attribute average (30-99). Used by the fight engine."""
     return round(sum(f["attrs"].values()) / len(C.ATTRS))
+
+
+def rating(entity: dict, tier: int | None = None) -> int:
+    """Composite fighter rating shown in the UI. Roughly 35 for a raw amateur up to
+    ~145 for an all-time great at the top of Apex. Works for the player dict and for
+    NPC roster dicts."""
+    a = entity["attrs"]
+    base = sum(a.values()) / len(a)
+    t = entity.get("tier", tier if tier is not None else 0)
+    rec = entity.get("record", {})
+    wins = rec.get("w", 0)
+    titles = len(entity.get("belts", []))
+    if not titles and entity.get("champion"):
+        titles = 1
+    champ = 8 if entity.get("champion") else 0
+    hype = entity.get("hype", 0)
+    streak = entity.get("win_streak", 0)
+    r = base + t * 3.8 + titles * 6 + champ + min(22, wins * 0.65) + min(14, hype / 16) + min(8, streak)
+    return int(round(r))
+
+
+def career_progress(f: dict) -> int:
+    """0-100: how close the player is to being the Apex champion."""
+    val = f["tier"] * 20 + (C.DIVISION_SIZE - f["rank"]) + (60 if f["champion"] else 0) \
+        + (10 if f.get("title_shot") else 0)
+    top = C.MAX_TIER * 20 + C.DIVISION_SIZE + 60
+    return int(min(100, round(100 * val / top)))
 
 
 def wear(f: dict) -> int:

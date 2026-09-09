@@ -183,6 +183,32 @@ def test_look_persists_and_npcs_have_looks():
         assert "look" in fr and fr["look"].get("skin", "").startswith("#")
 
 
+def test_rating_and_progress_scale():
+    f = G.new_state("Prospect", "", 22, "light", "balanced", G.default_attrs())["fighter"]
+    assert 25 <= G.rating(f) <= 45          # raw amateur
+    assert G.career_progress(f) < 20
+    # simulate a top-of-the-mountain fighter
+    f["attrs"] = {k: 80 for k in C.ATTRS}
+    f["tier"] = C.MAX_TIER
+    f["champion"] = True
+    f["belts"] = ["Apex (x)", "Global (y)"]
+    f["record"] = {"w": 20, "l": 3, "d": 0}
+    f["hype"] = 150
+    f["win_streak"] = 5
+    f["rank"] = 1
+    assert 125 <= G.rating(f) <= 165        # "top league ~140"
+    assert G.career_progress(f) >= 95
+
+
+def test_more_tiers_and_bigger_division():
+    assert len(C.TIERS) == 6
+    assert C.DIVISION_SIZE >= 16
+    st = G.new_state("D", "", 22, "light", "balanced", G.default_attrs())
+    active = [x for x in st["world"]["division"].values() if not x["retired"]]
+    assert len(active) == C.DIVISION_SIZE
+    assert "midkick" in C.ACTIONS
+
+
 def test_hall_of_fame_and_legacy():
     f = G.new_state("Legend", "GOAT", 22, "light", "striker", G.default_attrs())["fighter"]
     f["record"] = {"w": 30, "l": 3, "d": 0}

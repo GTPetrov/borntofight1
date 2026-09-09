@@ -14,6 +14,7 @@
     <div class="stat-line"><span>{{ t("Record") }}</span><b>{{ o.record.w }}-{{ o.record.l }}-{{ o.record.d }}</b></div>
     <div class="stat-line"><span>KO / Sub</span><b>{{ o.ko }} / {{ o.sub }}</b></div>
     <div class="stat-line"><span>{{ t("Form") }}</span><b>{% for x in o.form %}{{ x }}{% endfor %}</b></div>
+    <div class="stat-line"><span>Rating (you / them)</span><b>{{ rating(f) }} / {{ rating(o) }}</b></div>
   </div>
 </div>
 

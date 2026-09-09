@@ -15,8 +15,9 @@ def init_fight(player_attrs, opp, max_rounds, for_title,
                p_style="balanced", cut_stamina=0, p_stance="ortho") -> dict:
     def side(name, nickname, sta=100.0):
         return {"name": name, "nickname": nickname, "hp": 100.0, "stamina": sta,
-                "round_score": 0.0, "cards": 0, "knockdowns": 0, "rocked": 0,
-                "sig": 0, "td": 0, "cut": 0.0, "leg": 0.0}
+                "cards": 0, "rocked": 0, "cut": 0.0, "leg": 0.0,
+                # per-round tallies (reset every round) - drive the judges' cards
+                "r_sig": 0, "r_dmg": 0.0, "r_td": 0, "r_ctrl": 0.0, "r_sub": 0, "r_kd": 0}
 
     o_style = opp.get("style", "balanced")
     return {
@@ -68,7 +69,7 @@ def _side(state, who):
 def allowed_actions(state):
     pos = state["pos"]
     if pos == "stand":
-        return ["jab", "cross", "body", "lowkick", "headkick", "td_stand", "clinch_up", "defend_stand"]
+        return ["jab", "cross", "body", "lowkick", "midkick", "headkick", "td_stand", "clinch_up", "defend_stand"]
     if pos == "clinch":
         return ["dirtybox", "knee", "trip", "break_clinch", "defend_clinch"]
     if pos == "ground" and state["top"] == "player":
@@ -126,11 +127,11 @@ def _ai_combo(state):
             return ["clinch_up"]
         if cat == "defend":
             return ["defend_stand"]
-        first = _weighted({"jab": 0.34, "cross": 0.24 * aggr, "body": 0.16,
-                           "lowkick": 0.16, "headkick": 0.10 * aggr})
+        first = _weighted({"jab": 0.32, "cross": 0.22 * aggr, "body": 0.14,
+                           "lowkick": 0.14, "midkick": 0.10, "headkick": 0.08 * aggr})
         combo = [first]
         if random.random() < 0.3 * aggr and C.ACTIONS[first].get("combo"):
-            combo.append(_weighted({"jab": 0.5, "cross": 0.3 * aggr, "body": 0.2}))
+            combo.append(_weighted({"jab": 0.45, "cross": 0.28 * aggr, "body": 0.17, "midkick": 0.1}))
         return combo
 
     if pos == "clinch":
@@ -241,7 +242,8 @@ def resolve(state, player_actions) -> list[str]:
             winner = "opp" if who == "player" else "player"
             nm = "You" if who == "player" else s["name"]
             _finish(state, winner, "TKO (cut)", f'The cut on {nm.lower() if who=="player" else nm} is too deep — the doctor waves it off.')
-            lines.append("  >>> DOCTOR STOPPAGE! <<<")
+            wn = "You win" if winner == "player" else state["o"]["name"] + " wins" if winner == "opp" else "?"
+            lines.append(f'  >>> DOCTOR STOPPAGE - {wn} by TKO! <<<')
             return lines
 
     # --- grappling / movement (from start position) ---
@@ -272,19 +274,22 @@ def resolve(state, player_actions) -> list[str]:
     # control / stall
     if seq[0] == "control":
         o["stamina"] = max(0.0, o["stamina"] - 8)
-        p["round_score"] += 2 * (1.4 if state["tactic"] == "ground" else 1)
+        p["r_ctrl"] += 2.5 * (1.4 if state["tactic"] == "ground" else 1)
         lines.append("You control from the top and drain their gas tank.")
     if opp_seq[0] == "control":
         p["stamina"] = max(0.0, p["stamina"] - 8)
-        o["round_score"] += 2
+        o["r_ctrl"] += 2.5
         lines.append(f'{o["name"]} pins you down and controls.')
     for who, act in (("player", seq[0]), ("opp", opp_seq[0])):
         if act == "standup_top":
             state["pos"] = "stand"; state["top"] = None; state["passed"] = False
             lines.append("Back up to the feet.")
 
+    # octagon control: pressuring forward, or holding a dominant ground position
     if state["tactic"] == "pressure" and p_kind0 == "strike":
-        p["round_score"] += 1.5
+        p["r_ctrl"] += 0.6
+    if state["pos"] == "ground" and state["top"]:
+        _side(state, state["top"])["r_ctrl"] += 1.2
 
     # recovery
     for who, act in (("player", seq[0]), ("opp", opp_seq[0])):
@@ -367,7 +372,8 @@ def _do_strike(state, atk_who, action_key, def_action_key, extra_acc=0.0):
         dmg *= 0.8
     dmg = max(1.0, dmg)
     dfn["hp"] = max(0.0, dfn["hp"] - dmg)
-    atk["round_score"] += dmg * 0.8
+    atk["r_dmg"] += dmg
+    atk["r_sig"] += 1
 
     wmod = C.WEIGHT_KO_MOD.get(state["opp"].get("weight", "light"), 1.0)
     power_action = a["power"] >= 0.85 or action_key in ("gnp", "knee")
@@ -386,11 +392,9 @@ def _do_strike(state, atk_who, action_key, def_action_key, extra_acc=0.0):
     lines.append(f'{subj}: {a["label"].lower()} — lands! (-{int(dmg)})')
     if dfn["hp"] <= 0 or random.random() < ko:
         method = "KO" if (power_action and dfn["rocked"] == 0 and random.random() < 0.6) else "TKO"
-        atk["sig"] += 1
-        atk["knockdowns"] += 1
-        atk["round_score"] += 30
-        _finish(state, atk_who, method, f'{subj} end{"" if atk_who == "player" else "s"} it! {a["label"]} drops {obj}.')
-        lines.append("  >>> IT'S ALL OVER! <<<")
+        atk["r_kd"] += 1
+        _finish(state, atk_who, method, f'{a["label"]} drops {obj} - it\'s over.')
+        lines.append(f'  >>> {subj} WIN{"" if atk_who == "player" else "S"} BY {method}! <<<')
         return lines, False
 
     # cuts and leg damage
@@ -402,16 +406,17 @@ def _do_strike(state, atk_who, action_key, def_action_key, extra_acc=0.0):
         dfn["leg"] += random.randint(8, 18)
         who_lbl = "Your" if dfn_who == "player" else dfn["name"] + "'s"
         lines.append(f'  {who_lbl} lead leg is buckling.')
+    if action_key == "midkick" and random.random() < 0.06:
+        dfn["stamina"] = max(0.0, dfn["stamina"] - random.randint(6, 14))
+        who_lbl = "You take" if dfn_who == "player" else dfn["name"] + " takes"
+        lines.append(f'  {who_lbl} it flush to the body — visibly winded.')
 
     if power_action and dmg >= 13 and random.random() < 0.33:
         dfn["rocked"] = 2
-        dfn["round_score"] -= 4
-        atk["round_score"] += 6
-        atk["sig"] += 1
+        dfn["r_kd"] += 1
+        atk["r_sig"] += 1
         state["injuries"].append("rocked_player" if dfn_who == "player" else "rocked_opp")
         lines.append(f'  {"You are" if dfn_who == "player" else dfn["name"] + " is"} badly rocked!')
-    elif power_action:
-        atk["sig"] += 1
     if a.get("drain"):
         dfn["stamina"] = max(0.0, dfn["stamina"] - a["drain"])
     return lines, False
@@ -442,8 +447,7 @@ def _takedown(state, atk_who, dfn_who, resisted=False, from_clinch=False):
         state["pos"] = "ground"
         state["top"] = atk_who
         state["passed"] = False
-        atk["td"] += 1
-        atk["round_score"] += 5
+        atk["r_td"] += 1
         where = "you on top" if atk_who == "player" else atk["name"] + " on top"
         return [f'{subj}: takedown lands — on the ground, {where}.']
     atk["stamina"] = max(0.0, atk["stamina"] - 5)
@@ -451,7 +455,7 @@ def _takedown(state, atk_who, dfn_who, resisted=False, from_clinch=False):
         state["pos"] = "ground"
         state["top"] = dfn_who
         state["passed"] = False
-        dfn["round_score"] += 5
+        dfn["r_td"] += 1
         return [f'{subj}: takedown countered — you land on bottom.' if atk_who == "player"
                 else f'{subj}: takedown countered, you take top.']
     return [f'{subj}: takedown stuffed.']
@@ -476,10 +480,10 @@ def _ground(state, p_act, o_act):
         pr = min(0.85, max(0.02, pr))
         subj = "You" if atk_who == "player" else atk["name"]
         if random.random() < pr:
-            _finish(state, atk_who, "Submission", f'{subj} lock{"" if atk_who == "player" else "s"} it in — the tap comes!')
-            return [f'{subj}: SUBMISSION!']
+            _finish(state, atk_who, "Submission", f'{subj} lock{"" if atk_who == "player" else "s"} it in — the tap comes.')
+            return [f'  >>> {subj} WIN{"" if atk_who == "player" else "S"} BY SUBMISSION! <<<']
         atk["stamina"] = max(0.0, atk["stamina"] - 4)
-        dfn["round_score"] += 1
+        atk["r_sub"] += 1
         return [f'{subj}: submission attempt — defended.']
 
     def do_sweep(atk_who, dfn_who):
@@ -492,7 +496,7 @@ def _ground(state, p_act, o_act):
         if random.random() < pr:
             state["top"] = atk_who
             state["passed"] = False
-            atk["round_score"] += 4
+            atk["r_ctrl"] += 3
             return [f'{subj}: sweep! Now {"you" if atk_who == "player" else atk["name"]} on top.']
         return [f'{subj}: sweep attempt fails.']
 
@@ -519,7 +523,7 @@ def _ground(state, p_act, o_act):
         subj = "You" if atk_who == "player" else atk["name"]
         if random.random() < min(0.9, max(0.1, pr)):
             state["passed"] = True
-            _side(state, atk_who)["round_score"] += 2
+            _side(state, atk_who)["r_ctrl"] += 2
             return [f'{subj}: pass the guard — dominant position.']
         return [f'{subj}: guard pass stuffed.']
 
@@ -562,6 +566,25 @@ def _finish(state, winner_who, method, text):
 
 # --- round / fight end ---------------------------------------------
 
+SCORE_W = {"sig": 2.4, "dmg": 0.55, "td": 7.0, "ctrl": 2.2, "sub": 4.0, "kd": 20.0}
+
+
+def _round_points(s) -> float:
+    return (s["r_sig"] * SCORE_W["sig"] + s["r_dmg"] * SCORE_W["dmg"] + s["r_td"] * SCORE_W["td"]
+            + s["r_ctrl"] * SCORE_W["ctrl"] + s["r_sub"] * SCORE_W["sub"] + s["r_kd"] * SCORE_W["kd"])
+
+
+def _round_stat(s) -> dict:
+    return {"sig": int(round(s["r_sig"])), "td": s["r_td"], "ctrl": round(s["r_ctrl"], 1),
+            "kd": s["r_kd"], "sub": s["r_sub"], "dmg": int(s["r_dmg"])}
+
+
+def round_stats(state) -> dict:
+    """Live per-round tally for the fight screen."""
+    return {"p": _round_stat(state["p"]), "o": _round_stat(state["o"]),
+            "p_pts": round(_round_points(state["p"])), "o_pts": round(_round_points(state["o"]))}
+
+
 def end_exchange(state):
     if state["over"]:
         return
@@ -569,29 +592,38 @@ def end_exchange(state):
     if state["exchange"] < C.EXCHANGES_PER_ROUND:
         return
     p, o = state["p"], state["o"]
-    ps, os_ = p["round_score"], o["round_score"]
-    diff = ps - os_
-    dominant = abs(diff) >= 14 or abs(p["knockdowns"] - o["knockdowns"]) >= 1
-    if diff > 1:
+    ps, os_ = _round_points(p), _round_points(o)
+    margin = ps - os_
+    kd = p["r_kd"] - o["r_kd"]
+
+    if abs(margin) <= 3 and kd == 0:
+        pc, oc, winner = 10, 10, "even"
+        dominant = False
+    elif margin > 0:
+        dominant = kd >= 1 or (margin >= 40 and os_ < 11)
         pc, oc = (10, 8) if dominant else (10, 9)
         winner = "You"
-    elif diff < -1:
+    else:
+        dominant = kd <= -1 or (-margin >= 40 and ps < 11)
         pc, oc = (8, 10) if dominant else (9, 10)
         winner = o["name"]
-    else:
-        pc, oc = 10, 10
-        winner = "even"
     p["cards"] += pc
     o["cards"] += oc
     state["scorecard"].append({"round": state["round"], "p": pc, "o": oc})
 
     recap = {"round": state["round"], "winner": winner,
-             "p_score": int(ps), "o_score": int(os_),
+             "p_score": round(ps), "o_score": round(os_),
              "p_cards": p["cards"], "o_cards": o["cards"], "dominant": dominant,
+             "p_stats": _round_stat(p), "o_stats": _round_stat(o),
              "scorecard": list(state["scorecard"])}
 
-    p["round_score"] = o["round_score"] = 0.0
-    p["knockdowns"] = o["knockdowns"] = 0
+    for s in (p, o):
+        s["r_sig"] = 0
+        s["r_dmg"] = 0.0
+        s["r_td"] = 0
+        s["r_ctrl"] = 0.0
+        s["r_sub"] = 0
+        s["r_kd"] = 0
     p["rocked"] = o["rocked"] = 0
     p["cut"] *= 0.6
     o["cut"] *= 0.6
@@ -648,6 +680,8 @@ def corner_advice(state):
         tips.append("They're cut — target it, force the doctor's hand.")
     if state["o_style"] in ("wrestler", "grappler"):
         tips.append("They want the ground — defend takedowns and get back up.")
+    if p["leg"] >= 20:
+        tips.append("Your lead leg is hurt — check the kicks or switch stance.")
     return tips or ["Stick to the plan. It's close."]
 
 

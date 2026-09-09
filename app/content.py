@@ -47,13 +47,17 @@ WEIGHT_KO_MOD = {k: mod for k, _, mod in WEIGHT_CLASSES}
 
 TIERS = [
     {"name": "Amateur circuit", "short": "Amateur", "purse": 0, "win_bonus": 0,
-     "opp_base": 34, "defenses_to_promote": 2},
-    {"name": "Regional promotion (Fight Night)", "short": "Regional", "purse": 1500,
-     "win_bonus": 1500, "opp_base": 46, "defenses_to_promote": 2},
-    {"name": "National promotion (Kombat Zone)", "short": "National", "purse": 9000,
-     "win_bonus": 12000, "opp_base": 60, "defenses_to_promote": 3},
-    {"name": "The big leagues (Apex MMA)", "short": "Apex", "purse": 45000,
-     "win_bonus": 90000, "opp_base": 74, "defenses_to_promote": 99},
+     "opp_base": 32, "defenses_to_promote": 2},
+    {"name": "Regional promotion (Fight Night)", "short": "Regional", "purse": 1200,
+     "win_bonus": 1500, "opp_base": 42, "defenses_to_promote": 2},
+    {"name": "National promotion (Kombat Zone)", "short": "National", "purse": 6000,
+     "win_bonus": 9000, "opp_base": 51, "defenses_to_promote": 2},
+    {"name": "Continental league (Iron League)", "short": "Continental", "purse": 20000,
+     "win_bonus": 30000, "opp_base": 60, "defenses_to_promote": 3},
+    {"name": "Global promotion (Titan FC)", "short": "Global", "purse": 65000,
+     "win_bonus": 110000, "opp_base": 69, "defenses_to_promote": 3},
+    {"name": "Apex MMA - the pinnacle", "short": "Apex", "purse": 200000,
+     "win_bonus": 450000, "opp_base": 77, "defenses_to_promote": 99},
 ]
 TITLE_ROUNDS = 5
 MAX_TIER = len(TIERS) - 1
@@ -262,6 +266,9 @@ ACTIONS = {
     "lowkick": {"label": "Low kick", "pos": "stand", "kind": "strike",
                 "off": "striking", "power": 0.4, "stamina": 5, "base_dmg": 7, "drain": 4, "combo": True,
                 "desc": "Cheap, wrecks the opponent's mobility."},
+    "midkick": {"label": "Body kick", "pos": "stand", "kind": "strike",
+                "off": "power", "power": 0.85, "stamina": 9, "base_dmg": 11, "drain": 10, "risk": 0.15, "combo": True,
+                "desc": "Thudding kick to the ribs and liver - drains the gas tank and can end nights."},
     "headkick": {"label": "Head kick", "pos": "stand", "kind": "strike",
                  "off": "power", "power": 1.35, "stamina": 13, "base_dmg": 16, "risk": 0.34,
                  "desc": "Highlight-reel KO or flat on your back."},
@@ -313,7 +320,7 @@ COMBO_MAX = 3
 
 # --- World / calendar ------------------------------------------------
 
-DIVISION_SIZE = 12
+DIVISION_SIZE = 16
 MONTHS_BETWEEN_FIGHTS = 2
 NEWCOMER_AGE = (19, 26)
 

@@ -7,14 +7,15 @@
       <img class="ava-md" src="{{ ava_url(f.look, 110, wear(f)) }}" alt="">
       <div>
         <h2 style="margin:0">{{ f.name }}{% if f.nickname %} "{{ f.nickname }}"{% endif %}</h2>
-        <span class="muted">{{ WEIGHT_LABELS[f.weight] }} &middot; {{ f.age|round(1) }} {{ t("yrs") }} &middot; {{ STYLES[f.style].label }} &middot; OVR {{ overall(f) }}</span>
+        <span class="muted">{{ WEIGHT_LABELS[f.weight] }} &middot; {{ f.age|round(1) }} {{ t("yrs") }} &middot; {{ STYLES[f.style].label }}</span>
         <div style="margin-top:4px">
           {% for r in f.form %}<span class="pill {{ 'win' if r=='W' else 'loss' if r=='L' else '' }}">{{ r }}</span>{% endfor %}
         </div>
       </div>
     </div>
     <div style="text-align:right">
-      <div class="pill">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }}</div>
+      <div style="font-size:26px;font-weight:800;line-height:1">{{ rating(f) }}<span class="muted" style="font-size:12px;font-weight:400"> rating</span></div>
+      <div class="pill" style="margin-top:4px">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }}</div>
       <div style="margin-top:6px">
         {% if f.champion %}<span class="pill gold">{{ t("CHAMPION") }} {{ tier.short }}</span>
         {% elif f.title_shot %}<span class="pill gold">{{ t("title shot") }}</span>
@@ -23,6 +24,20 @@
       <div class="muted" style="font-size:12px;margin-top:4px">{{ date_str(world) }} &middot; {{ DIFFICULTY[f.difficulty].label }}{% if f.mode != 'standard' %} &middot; {{ GAME_MODES[f.mode].label }}{% endif %}</div>
     </div>
   </div>
+
+  <div style="margin-top:14px">
+    <div class="lbl" style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+      <span>Overall skill</span><span>{{ overall(f) }} / 99</span>
+    </div>
+    <div class="bar"><i style="width:{{ (100 * overall(f) / 99)|round(1) }}%"></i></div>
+    <div class="ladder">
+      {% for i in range(TIERS|length) %}
+      <span class="rung {{ 'done' if i < f.tier }} {{ 'now' if i == f.tier }}">{{ TIERS[i].short }}</span>
+      {% if not loop.last %}<span class="rung-sep">&rsaquo;</span>{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
   <div class="grid c3" style="margin-top:12px">
     <div class="stat-line"><span>{{ t("Cash") }}</span><b>${{ f.money }}</b></div>
     <div class="stat-line"><span>{{ t("Popularity") }}</span><b>{{ f.hype }}</b></div>
@@ -70,7 +85,7 @@
       <h2>{{ t("Next fight") }} {% if stakes.for_title %}<span class="pill gold">{{ t("for the title") }}</span>{% endif %}</h2>
       <p style="font-size:17px;margin:.2em 0"><a href="/fighter/{{ stakes.opp.id }}"><b>{{ stakes.opp.name }}</b></a>{% if stakes.opp.nickname %} "{{ stakes.opp.nickname }}"{% endif %}</p>
       <div class="stat-line"><span>{{ t("Record / rank") }}</span><b>{{ stakes.opp.record.w }}-{{ stakes.opp.record.l }} &middot; #{{ stakes.opp.rank }}</b></div>
-      <div class="stat-line"><span>{{ t("Style") }}</span><b>{{ STYLES[stakes.opp.style].label }}</b></div>
+      <div class="stat-line"><span>{{ t("Style") }} / rating</span><b>{{ STYLES[stakes.opp.style].label }} &middot; {{ rating(stakes.opp) }}</b></div>
       <div class="stat-line"><span>{{ t("Estimated chance") }}</span><b>{{ stakes.prob }}%</b></div>
       {% if stakes.rivalry and stakes.rivalry.fights %}
       <div class="stat-line"><span>{{ t("Rivalry") }}</span><b>{{ stakes.rivalry.pw }}-{{ stakes.rivalry.ow }} (heat {{ stakes.rivalry.heat }})</b></div>

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% block body %}
 
-<div class="result-banner {{ lr.outcome }}">
+{% set finish = lr.method in ['KO','TKO','TKO (cut)','Submission'] %}
+<div class="result-banner {{ lr.outcome }}{{ ' finish' if finish }}">
   <h2>{% if lr.outcome=='win' %}{{ t("WIN") }}{% elif lr.outcome=='loss' %}{{ t("LOSS") }}{% else %}{{ t("DRAW") }}{% endif %}</h2>
-  <p>{{ lr.method }} &middot; {{ t("Round") }} {{ lr.round }}</p>
-  <p class="muted">{{ lr.text }}</p>
+  <p class="method">{% if finish %}&#128165; {% endif %}{{ lr.method }} &middot; {{ t("Round") }} {{ lr.round }}</p>
+  <p class="muted" style="margin:.4em 0">{{ lr.text }}</p>
   <p>vs {{ lr.opp_name }}{% if lr.opp_nick %} "{{ lr.opp_nick }}"{% endif %}</p>
 </div>
 

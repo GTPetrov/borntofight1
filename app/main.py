@@ -52,8 +52,8 @@ templates.env.globals.update(
     STYLES=C.STYLES, TIERS=C.TIERS, STAFF=C.STAFF, CUTS=C.CUTS, TACTICS=C.TACTICS,
     LOOKS=C.LOOKS, DEFAULT_LOOK=C.DEFAULT_LOOK, DIFFICULTY=C.DIFFICULTY,
     GAME_MODES=C.GAME_MODES, SPONSORS=C.SPONSORS, ACHIEVEMENTS=C.ACHIEVEMENTS,
-    overall=G.overall, wear=G.wear, avatar=AV.portrait, date_str=W.date_str,
-    ava_url=AV.url,
+    overall=G.overall, rating=G.rating, career_progress=G.career_progress,
+    wear=G.wear, avatar=AV.portrait, date_str=W.date_str, ava_url=AV.url,
 )
 
 
@@ -386,6 +386,7 @@ def fight_screen(request: Request):
     return render("fight.html", request, fs=fs, f=state["fighter"], bars=F.bars(fs),
                   pos=F.pos_label(fs), actions=F.allowed_actions(fs),
                   combo=F.combo_actions(fs), recap=fs.get("recap"),
+                  rstats=F.round_stats(fs),
                   advice=F.corner_advice(fs) if fs.get("recap") else None)
 
 

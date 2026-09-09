@@ -36,6 +36,17 @@
     {% if fs.passed %}<span class="pill">{{ t("guard passed") }}</span>{% endif %}
   </p>
 
+  {% if not fs.over and not recap %}
+  <div class="roundtally">
+    <span class="rt-h">This round</span>
+    <span>sig {{ rstats.p.sig }}–{{ rstats.o.sig }}</span>
+    <span>TD {{ rstats.p.td }}–{{ rstats.o.td }}</span>
+    <span>ctrl {{ rstats.p.ctrl }}–{{ rstats.o.ctrl }}</span>
+    {% if rstats.p.kd or rstats.o.kd %}<span class="rt-kd">KD {{ rstats.p.kd }}–{{ rstats.o.kd }}</span>{% endif %}
+    <span class="rt-pts">score {{ rstats.p_pts }}–{{ rstats.o_pts }}</span>
+  </div>
+  {% endif %}
+
   {% if fs.scorecard %}
   <table style="margin-top:10px">
     <tr><th>{{ t("Round") }}</th>{% for s in fs.scorecard %}<td>{{ s.round }}</td>{% endfor %}<th>&Sigma;</th></tr>
@@ -49,7 +60,17 @@
 <div class="panel">
   <h2>{% if recap.final %}{{ t("Fight over - decision") }}{% else %}{{ t("Corner after round") }} {{ recap.round }}{% endif %}</h2>
   <p>{{ t("round for") }}: <b>{{ recap.winner }}</b>{% if recap.dominant %} <span class="pill">10-8</span>{% endif %}
-     &middot; {{ t("points") }} {{ recap.p_score }} : {{ recap.o_score }} &middot; {{ t("cards") }} {{ recap.p_cards }} : {{ recap.o_cards }}</p>
+     &middot; {{ t("cards") }} {{ recap.p_cards }} : {{ recap.o_cards }}</p>
+  <table style="margin:8px 0 12px;max-width:420px">
+    <tr><th></th><th>You</th><th>{{ fs.o.name }}</th></tr>
+    <tr><td>Significant strikes</td><td>{{ recap.p_stats.sig }}</td><td>{{ recap.o_stats.sig }}</td></tr>
+    <tr><td>Damage</td><td>{{ recap.p_stats.dmg }}</td><td>{{ recap.o_stats.dmg }}</td></tr>
+    <tr><td>Takedowns</td><td>{{ recap.p_stats.td }}</td><td>{{ recap.o_stats.td }}</td></tr>
+    <tr><td>Control</td><td>{{ recap.p_stats.ctrl }}</td><td>{{ recap.o_stats.ctrl }}</td></tr>
+    <tr><td>Sub attempts</td><td>{{ recap.p_stats.sub }}</td><td>{{ recap.o_stats.sub }}</td></tr>
+    <tr><td>Knockdowns</td><td>{{ recap.p_stats.kd }}</td><td>{{ recap.o_stats.kd }}</td></tr>
+    <tr><td><b>Round score</b></td><td><b>{{ recap.p_score }}</b></td><td><b>{{ recap.o_score }}</b></td></tr>
+  </table>
   {% if advice %}<div class="log">{% for a in advice %}<div class="ex"><span class="l">&#129354; {{ a }}</span></div>{% endfor %}</div>{% endif %}
   {% if recap.can_corner %}
   <form method="post" action="/fight/corner" style="margin-top:12px">
