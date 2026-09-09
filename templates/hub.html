@@ -23,21 +23,17 @@
         {% else %}<span class="pill">{{ tier.short }} &middot; #{{ f.rank }}</span>{% endif %}
         <span class="muted" style="font-size:12px">&nbsp;{{ date_str(world) }} &middot; {{ DIFFICULTY[f.difficulty].label }}{% if f.mode != 'standard' %} &middot; {{ GAME_MODES[f.mode].label }}{% endif %}</span>
       </div>
-      <div class="lbl" style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px"><span>Overall skill</span><span>{{ overall(f) }} / 99</span></div>
-      <div class="bar"><i style="width:{{ (100 * overall(f) / 99)|round(1) }}%"></i></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px">Overall skill</div>
+      <div class="skillrow">
+        <div class="bar xl"><i style="width:{{ (100 * overall(f) / 99)|round(1) }}%"></i></div>
+        <span class="skv">{{ overall(f) }}<small> / 99</small></span>
+      </div>
       <div class="ladder">
         {% for i in range(TIERS|length) %}
         <span class="rung {{ 'done' if i < f.tier }} {{ 'now' if i == f.tier }}">{{ TIERS[i].short }}</span>
         {% if not loop.last %}<span class="rung-sep">&rsaquo;</span>{% endif %}
         {% endfor %}
       </div>
-    </div>
-
-    <div class="panel">
-      <h2>{{ t("Attributes") }}</h2>
-      {% for k in ATTRS %}
-      <div class="attr-row"><b>{{ ATTR_LABELS[k] }}</b><div class="bar"><i style="width:{{ f.attrs[k] }}%"></i></div><span>{{ f.attrs[k] }}</span></div>
-      {% endfor %}
     </div>
 
     <div class="panel">
@@ -76,14 +72,14 @@
   </div>
 
   <div class="col">
-    <div class="panel grow">
+    <div class="panel">
       <h2>{{ t("Training camp") }} &mdash; {{ camp.left }} / {{ camp.total }}
         {% if f.injury_weeks %}<span class="pill loss">{{ t("injury shortened the camp") }}</span>{% endif %}
         {% if f.suspension_camps %}<span class="pill loss">{{ t("medical suspension") }}</span>{% endif %}
       </h2>
       <div class="bar" style="margin-bottom:10px"><i style="width:{{ (100*(camp.total-camp.left)/camp.total)|round }}%"></i></div>
       {% if camp.left > 0 %}
-      <div class="scroll">
+      <div>
         <div class="train-grid">
           {% for key, tr in TRAININGS.items() %}
           {% set r = injury_risk(f, key) %}
@@ -111,6 +107,13 @@
         <form method="get" action="/weighin"><button class="btn big" type="submit">{{ t("Go to weigh-in") }} &rarr;</button></form>
       </div>
       {% endif %}
+    </div>
+
+    <div class="panel grow">
+      <h2>{{ t("Attributes") }} &middot; OVR {{ overall(f) }}</h2>
+      {% for k in ATTRS %}
+      <div class="attr-row"><b>{{ ATTR_LABELS[k] }}</b><div class="bar"><i style="width:{{ f.attrs[k] }}%"></i></div><span>{{ f.attrs[k] }}</span></div>
+      {% endfor %}
     </div>
   </div>
 

@@ -423,6 +423,17 @@ def division_page(request: Request):
                   champ=W.get_fighter(state["world"], state["world"].get("champion_id")))
 
 
+@app.get("/divisions", response_class=HTMLResponse)
+def divisions_page(request: Request):
+    state = _load()
+    if not state:
+        return redirect("/")
+    divs = W.all_divisions(state)
+    G.save(state)
+    return render("divisions.html", request, f=state["fighter"], divs=divs,
+                  world=state["world"])
+
+
 @app.get("/fighter/{fid}", response_class=HTMLResponse)
 def fighter_page(request: Request, fid: str):
     state = _load()

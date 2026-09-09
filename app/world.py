@@ -84,6 +84,62 @@ def roster(world: dict) -> list[dict]:
     return sorted(world.get("division", {}).values(), key=lambda f: f["rank"])
 
 
+# --- other weight divisions (flavour: champions + a short roster) ----------
+
+EXT_SIZE = 8
+
+
+def ensure_other_divisions(world: dict) -> None:
+    ext = world.setdefault("ext_div", {})
+    player_weight = world.get("weight")
+    tier = world.get("tier", 0)
+    for wkey, _label, _mod in C.WEIGHT_CLASSES:
+        if wkey == player_weight or wkey in ext:
+            continue
+        used: set = set()
+        ext[wkey] = [make_npc(world, wkey, tier, r, used) for r in range(1, EXT_SIZE + 1)]
+        ext[wkey][0]["champion"] = True
+
+
+def advance_other_divisions(world: dict) -> None:
+    for fighters in world.get("ext_div", {}).values():
+        active = [f for f in fighters if not f.get("retired")]
+        if len(active) < 2:
+            continue
+        a, b = random.sample(active, 2)
+        wnr, lsr, mth, _ = quick_sim(a, b)
+        _apply_npc_result(wnr, lsr, mth)
+        wnr["form"] = (wnr.get("form", []) + ["W"])[-5:]
+        lsr["form"] = (lsr.get("form", []) + ["L"])[-5:]
+        for f in fighters:
+            f["age"] = f.get("age", 27) + C.AGE_PER_FIGHT / 2
+        fighters.sort(key=lambda f: f["rank"])
+        for i, f in enumerate(fighters, 1):
+            f["rank"] = i
+            f["champion"] = i == 1
+
+
+def all_divisions(state: dict) -> list[dict]:
+    """Player's division + the others, for the overview page."""
+    world = state["world"]
+    ensure_other_divisions(world)
+    sync_player(state)
+    out = [{
+        "weight": world["weight"], "label": C.WEIGHT_LABELS[world["weight"]],
+        "mine": True, "roster": roster(world)[:EXT_SIZE],
+        "champ": get_fighter(world, world.get("champion_id")),
+    }]
+    for wkey, label, _mod in C.WEIGHT_CLASSES:
+        if wkey == world["weight"]:
+            continue
+        fs = sorted(world["ext_div"].get(wkey, []), key=lambda f: f["rank"])
+        out.append({"weight": wkey, "label": label, "mine": False,
+                    "roster": fs, "champ": fs[0] if fs else None})
+    order = {w: i for i, (w, _l, _m) in enumerate(C.WEIGHT_CLASSES)}
+    out.sort(key=lambda d: order.get(d["weight"], 99))
+    return out
+
+
 def get_fighter(world: dict, fid: str) -> dict | None:
     return world.get("division", {}).get(fid)
 
@@ -186,12 +242,14 @@ def advance(world: dict, player: dict, months: int = C.MONTHS_BETWEEN_FIGHTS) ->
     for f in list(div.values()):
         if f["is_player"] or f["retired"]:
             continue
-        f["age"] += months / 12.0
+        f["age"] += C.AGE_PER_FIGHT
         if f["age"] >= 36 and random.random() < 0.12 + (f["age"] - 36) * 0.05:
             f["retired"] = True
             news.append(f"{f['name']} ({f['record']['w']}-{f['record']['l']}) retires.")
     _refill(world, player, news)
     _renumber(world, player)
+    if world.get("ext_div"):
+        advance_other_divisions(world)
     return news
 
 

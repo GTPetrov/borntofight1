@@ -330,7 +330,8 @@ COMBO_MAX = 3
 # --- World / calendar ------------------------------------------------
 
 DIVISION_SIZE = 16
-MONTHS_BETWEEN_FIGHTS = 2
+MONTHS_BETWEEN_FIGHTS = 2      # calendar step per fight (keeps months an integer)
+AGE_PER_FIGHT = 0.12          # years added per fight (~8 fights/year) - slower than the calendar
 NEWCOMER_AGE = (19, 26)
 
 # --- Nationalities & name pools -------------------------------------

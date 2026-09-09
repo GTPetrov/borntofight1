@@ -586,7 +586,7 @@ def apply_result(state: dict, result: dict) -> dict:
     # age / calendar
     f["fights"] += 1
     old_year = int(f["age"])
-    f["age"] += C.MONTHS_BETWEEN_FIGHTS / 12.0
+    f["age"] += C.AGE_PER_FIGHT
     if int(f["age"]) > old_year:
         ch["lines"].append(f"Another year - you're now {int(f['age'])}.")
         if f["age"] >= 34:

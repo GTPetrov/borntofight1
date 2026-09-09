@@ -12,6 +12,7 @@ PL: dict[str, str] = {
     # nav / chrome
     "Camp": "Obóz",
     "Division": "Dywizja",
+    "All divisions": "Wszystkie dywizje",
     "Staff": "Sztab",
     "Career": "Kariera",
     "Menu": "Menu",

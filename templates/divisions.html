@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block bodyclass %}has-board{% endblock %}
+{% block body %}
+<div class="board" style="grid-template-columns:1fr">
+  <div class="col">
+    <div class="panel grow">
+      <h2>{{ t("All divisions") }} &middot; {{ date_str(world) }}</h2>
+      <div class="scroll">
+        <div class="divgrid">
+          {% for d in divs %}
+          <div class="divcard {{ 'mine' if d.mine }}">
+            <div class="divcard-h">
+              <b>{{ WEIGHT_LABELS[d.weight] }}</b>
+              {% if d.mine %}<span class="pill gold">your division</span>{% endif %}
+            </div>
+            {% if d.champ %}
+            <div class="divchamp">
+              &#128081; {{ flag(d.champ) }} <b>{{ d.champ.name }}</b>
+              <span class="muted">{{ d.champ.record.w }}-{{ d.champ.record.l }} &middot; {{ STYLES[d.champ.style].label }} &middot; {{ rating(d.champ) }}</span>
+            </div>
+            {% endif %}
+            <table>
+              <tr><th>#</th><th>Fighter</th><th>Rec</th><th>Rtg</th></tr>
+              {% for r in d.roster[:6] %}
+              <tr class="{{ 'me' if r.is_player }}">
+                <td>{{ '&#128081;'|safe if r.champion else r.rank }}</td>
+                <td>{{ flag(r) }} {% if r.is_player %}<b>{{ r.name }} (you)</b>{% else %}{{ r.name }}{% endif %}</td>
+                <td>{{ r.record.w }}-{{ r.record.l }}</td>
+                <td>{{ rating(r) }}</td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
