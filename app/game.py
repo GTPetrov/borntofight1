@@ -141,8 +141,29 @@ def default_attrs() -> dict:
     return {k: C.START_BASE for k in C.ATTRS}
 
 
+def random_seed(points: int, rng=None) -> dict:
+    """A randomized-but-valid starting point for the creation form."""
+    rng = rng or random
+    nation, name, nick = C.random_person(rng)
+    attrs = {k: C.START_BASE for k in C.ATTRS}
+    left = points
+    keys = list(C.ATTRS)
+    while left > 0:
+        k = rng.choice(keys)
+        if attrs[k] < C.START_ATTR_CAP:
+            attrs[k] += 1
+            left -= 1
+    return {
+        "name": name, "nickname": nick if rng.random() < 0.7 else "",
+        "age": rng.randint(19, 29), "weight": rng.choice(list(C.WEIGHT_LABELS)),
+        "style": rng.choice(list(C.STYLES)), "nation": nation,
+        "look": C.random_look(rng), "attrs": attrs,
+    }
+
+
 def new_state(name, nickname, age, weight, style, attrs, legacy: dict | None = None,
-              look: dict | None = None, difficulty="normal", mode="standard") -> dict:
+              look: dict | None = None, difficulty="normal", mode="standard",
+              nation="USA") -> dict:
     legacy = legacy or {}
     difficulty = difficulty if difficulty in C.DIFFICULTY else "normal"
     mode = mode if mode in C.GAME_MODES else "standard"
@@ -161,6 +182,7 @@ def new_state(name, nickname, age, weight, style, attrs, legacy: dict | None = N
         "age": float(age),
         "weight": weight,
         "style": style if style in C.STYLES else "balanced",
+        "nation": nation if nation in C.NATIONS else "USA",
         "look": look,
         "difficulty": difficulty,
         "mode": mode,

@@ -48,6 +48,8 @@ PL: dict[str, str] = {
     "Nickname": "Ksywa",
     "Age": "Wiek",
     "Weight class": "Kategoria wagowa",
+    "Nationality": "Narodowość",
+    "Randomize": "Losuj",
     "Appearance": "Wygląd",
     "Skin": "Karnacja",
     "Hair": "Włosy",

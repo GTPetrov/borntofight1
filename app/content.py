@@ -333,26 +333,71 @@ DIVISION_SIZE = 16
 MONTHS_BETWEEN_FIGHTS = 2
 NEWCOMER_AGE = (19, 26)
 
-# --- Name pools ------------------------------------------------------
+# --- Nationalities & name pools -------------------------------------
 
-FIRST_NAMES = [
-    "Marcus", "Cody", "Dwight", "Rashad", "Vince", "Andre", "Bo", "Terrell",
-    "Jamal", "Kyle", "Dominic", "Sean", "Curtis", "Ivan", "Nate", "Aleksei",
-    "Brock", "Diego", "Khalil", "Tyrone", "Owen", "Petr", "Gunnar", "Renato",
-    "Hideo", "Bruno", "Malik", "Chase", "Lorenzo", "Deon", "Viktor", "Isaiah",
-    "Rory", "Damir",
-]
-LAST_NAMES = [
-    "Kovac", "Ferreira", "Blackwood", "Nakamura", "Okafor", "Vasquez", "Doyle",
-    "Petrov", "Hansen", "Silva", "Coleman", "Ruiz", "Antonov", "Mercer",
-    "Brennan", "Osei", "Kruger", "Bishop", "Novak", "Wolfe", "Dane", "Cole",
-    "Marek", "Voss", "Callahan", "Reyes", "Steele", "Barnes", "Diallo",
-    "Larsen", "Munro", "Grant", "Ivarsson", "Kane",
-]
+NATIONS = {
+    "USA": {"name": "USA", "flag": "\U0001F1FA\U0001F1F8",
+            "first": ["Marcus", "Cody", "DeShawn", "Tyler", "Brandon", "Devin", "Jalen", "Bo", "Chase", "Trey"],
+            "last": ["Coleman", "Bishop", "Mercer", "Barnes", "Steele", "Grant", "Cole", "Wolfe", "Dane", "Hollis"]},
+    "BRA": {"name": "Brazil", "flag": "\U0001F1E7\U0001F1F7",
+            "first": ["Bruno", "Renato", "Diego", "Thiago", "Rafael", "Vitor", "Caio", "Lucas", "Anderson", "Gilberto"],
+            "last": ["Silva", "Ferreira", "Souza", "Oliveira", "Costa", "Almeida", "Rocha", "Barbosa", "Nunes", "Pereira"]},
+    "RUS": {"name": "Russia", "flag": "\U0001F1F7\U0001F1FA",
+            "first": ["Ivan", "Aleksei", "Viktor", "Dmitri", "Sergei", "Ruslan", "Magomed", "Khabib", "Islam", "Pavel"],
+            "last": ["Petrov", "Antonov", "Volkov", "Nurmagomedov", "Ivanov", "Sokolov", "Makhachev", "Orlov", "Popov", "Zaytsev"]},
+    "POL": {"name": "Poland", "flag": "\U0001F1F5\U0001F1F1",
+            "first": ["Mateusz", "Marcin", "Bartosz", "Damian", "Kamil", "Rafal", "Lukasz", "Pawel", "Krystian", "Jan"],
+            "last": ["Kowalczyk", "Wisniewski", "Mazur", "Duda", "Kaczmarek", "Zajac", "Blachowicz", "Nowak", "Wojcik", "Sikora"]},
+    "GBR": {"name": "United Kingdom", "flag": "\U0001F1EC\U0001F1E7",
+            "first": ["Liam", "Callum", "Reece", "Nathan", "Jordan", "Aaron", "Lewis", "Dominic", "Harry", "Curtis"],
+            "last": ["Blackwood", "Doyle", "Brennan", "Callahan", "Munro", "Kane", "Whittaker", "Pearson", "Hughes", "Bennett"]},
+    "IRL": {"name": "Ireland", "flag": "\U0001F1EE\U0001F1EA",
+            "first": ["Conor", "Sean", "Paddy", "Aidan", "Cian", "Fionn", "Rory", "Declan", "Niall", "Eoin"],
+            "last": ["O'Connor", "Byrne", "Kavanagh", "Doherty", "Gallagher", "McCarthy", "Nolan", "Brady", "Quinn", "Fitzgerald"]},
+    "MEX": {"name": "Mexico", "flag": "\U0001F1F2\U0001F1FD",
+            "first": ["Diego", "Alejandro", "Javier", "Emiliano", "Rodrigo", "Cesar", "Hugo", "Ricardo", "Mateo", "Ivan"],
+            "last": ["Vasquez", "Reyes", "Ruiz", "Herrera", "Torres", "Castillo", "Mendoza", "Jimenez", "Aguilar", "Delgado"]},
+    "SWE": {"name": "Sweden", "flag": "\U0001F1F8\U0001F1EA",
+            "first": ["Gunnar", "Erik", "Anton", "Viktor", "Nils", "Emil", "Oskar", "Filip", "Axel", "Lucas"],
+            "last": ["Hansen", "Larsen", "Ivarsson", "Kruger", "Berg", "Lindqvist", "Holm", "Ek", "Nyman", "Sandberg"]},
+    "NGA": {"name": "Nigeria", "flag": "\U0001F1F3\U0001F1EC",
+            "first": ["Israel", "Kamaru", "Bola", "Chidi", "Emeka", "Tunde", "Kelechi", "Obi", "Sola", "Uche"],
+            "last": ["Okafor", "Osei", "Diallo", "Adesanya", "Usman", "Balogun", "Eze", "Nwosu", "Adeyemi", "Okoro"]},
+    "JPN": {"name": "Japan", "flag": "\U0001F1EF\U0001F1F5",
+            "first": ["Hideo", "Kenta", "Takeshi", "Ryu", "Sho", "Kazuki", "Daichi", "Riku", "Yuto", "Haruto"],
+            "last": ["Nakamura", "Tanaka", "Sato", "Yamamoto", "Kobayashi", "Watanabe", "Ito", "Aoki", "Sakuraba", "Mori"]},
+    "KOR": {"name": "South Korea", "flag": "\U0001F1F0\U0001F1F7",
+            "first": ["Jung", "Doo", "Min", "Hyun", "Jae", "Seung", "Chan", "Woo", "Sung", "Ho"],
+            "last": ["Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Yoon", "Song", "Han", "Oh"]},
+    "GEO": {"name": "Georgia", "flag": "\U0001F1EC\U0001F1EA",
+            "first": ["Giorgi", "Levan", "Merab", "Ilia", "Guram", "Vakhtang", "Beka", "Nika", "Zurab", "Irakli"],
+            "last": ["Dvalishvili", "Kvaratskhelia", "Beridze", "Lomadze", "Gogoladze", "Machavariani", "Tsiklauri", "Nadiradze", "Kiknadze", "Gvasalia"]},
+    "FRA": {"name": "France", "flag": "\U0001F1EB\U0001F1F7",
+            "first": ["Cyril", "Fernand", "Nassourdine", "Benoit", "Morgan", "Ludovic", "Thomas", "Kevin", "William", "Baptiste"],
+            "last": ["Gane", "Doumbe", "Imavov", "Saint-Denis", "Charriere", "Moreau", "Lambert", "Renard", "Bourdin", "Faucher"]},
+    "CAN": {"name": "Canada", "flag": "\U0001F1E8\U0001F1E6",
+            "first": ["Georges", "Rory", "Mike", "Olivier", "Marc-Andre", "TJ", "Cole", "Aiden", "Brendan", "Chad"],
+            "last": ["St-Pierre", "MacDonald", "Ricci", "Aubin", "Barrett", "Laframboise", "Tremblay", "Gagnon", "Hale", "Pike"]},
+    "AUS": {"name": "Australia", "flag": "\U0001F1E6\U0001F1FA",
+            "first": ["Robert", "Jack", "Tai", "Jimmy", "Kai", "Blake", "Riley", "Cody", "Hunter", "Beau"],
+            "last": ["Whittaker", "Tuivasa", "Della-Maddalena", "Hooker", "Prochazka", "Boland", "Kelly", "Radford", "Nash", "Vella"]},
+    "NLD": {"name": "Netherlands", "flag": "\U0001F1F3\U0001F1F1",
+            "first": ["Bas", "Stefan", "Rico", "Jamal", "Alistair", "Gegard", "Sander", "Dennis", "Kevin", "Ruben"],
+            "last": ["Verhoeven", "Struve", "Mousasi", "van der Berg", "de Vries", "Jansen", "Bakker", "Visser", "Smit", "Kramer"]},
+}
+NATION_CODES = list(NATIONS)
+
 NICKNAMES = [
     "The Butcher", "Cyclone", "Golem", "Pitbull", "Hurricane", "Cobra", "Concrete",
     "The Doctor", "Silent", "Hammer", "Wolf", "Torpedo", "The Bear", "Diesel",
     "The Professor", "Tank", "Anaconda", "The Reaper", "Bulldog", "Berserk",
     "The Vulture", "The Bull", "Shark", "Blade", "Buzzsaw", "The Anvil",
-    "Freight Train", "Mad Dog",
+    "Freight Train", "Mad Dog", "The Highlight", "Iron", "Nightmare", "The Eagle",
 ]
+
+
+def random_person(rng, nation: str | None = None):
+    """(nation_code, 'First Last', nickname)."""
+    code = nation if nation in NATIONS else rng.choice(NATION_CODES)
+    n = NATIONS[code]
+    return code, f"{rng.choice(n['first'])} {rng.choice(n['last'])}", rng.choice(NICKNAMES)

@@ -8,7 +8,7 @@
       <div style="display:flex;gap:12px;align-items:flex-start">
         <img class="ava-md" src="{{ ava_url(f.look, 96, wear(f)) }}" alt="">
         <div style="flex:1">
-          <h2 style="margin:0 0 2px;color:var(--text)">{{ f.name }}{% if f.nickname %} "{{ f.nickname }}"{% endif %}</h2>
+          <h2 style="margin:0 0 2px;color:var(--text)">{{ flag(f) }} {{ f.name }}{% if f.nickname %} "{{ f.nickname }}"{% endif %}</h2>
           <span class="muted" style="font-size:13px">{{ WEIGHT_LABELS[f.weight] }} &middot; {{ f.age|round(1) }} {{ t("yrs") }} &middot; {{ STYLES[f.style].label }}</span>
           <div style="margin-top:4px">{% for r in f.form %}<span class="pill {{ 'win' if r=='W' else 'loss' if r=='L' else '' }}">{{ r }}</span>{% endfor %}</div>
         </div>
@@ -96,7 +96,7 @@
     <div class="panel grow">
       <h2>{{ t("Next fight") }} {% if stakes.for_title %}<span class="pill gold">{{ t("for the title") }}</span>{% endif %}</h2>
       <div class="scroll">
-        <p style="font-size:17px;margin:.1em 0"><a href="/fighter/{{ stakes.opp.id }}"><b>{{ stakes.opp.name }}</b></a>{% if stakes.opp.nickname %} "{{ stakes.opp.nickname }}"{% endif %}</p>
+        <p style="font-size:17px;margin:.1em 0">{{ flag(stakes.opp) }} <a href="/fighter/{{ stakes.opp.id }}"><b>{{ stakes.opp.name }}</b></a>{% if stakes.opp.nickname %} "{{ stakes.opp.nickname }}"{% endif %}</p>
         <div class="stat-line"><span>{{ t("Record / rank") }}</span><b>{{ stakes.opp.record.w }}-{{ stakes.opp.record.l }} &middot; #{{ stakes.opp.rank }}</b></div>
         <div class="stat-line"><span>{{ t("Style") }} / rating</span><b>{{ STYLES[stakes.opp.style].label }} &middot; {{ rating(stakes.opp) }}</b></div>
         <div class="stat-line"><span>{{ t("Estimated chance") }}</span><b>{{ stakes.prob }}%</b></div>

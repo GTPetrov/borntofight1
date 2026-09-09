@@ -7,7 +7,7 @@
   <div class="fight-head">
     <div class="who">
       <img class="ava-md" src="{{ ava_url(f.look, 80, wear(f)) }}" alt="">
-      <div class="nm">You</div><div class="muted">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }} &middot; {{ STYLES[fs.p_style].label }}</div>
+      <div class="nm">{{ flag(f) }} You</div><div class="muted">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }} &middot; {{ STYLES[fs.p_style].label }}</div>
       <div class="pill">{{ t("cards") }}: {{ fs.p.cards }}</div>
     </div>
     <div class="who"><div class="vs">VS</div>
@@ -17,7 +17,7 @@
     </div>
     <div class="who">
       <img class="ava-md" src="{{ ava_url(fs.opp.get('look'), 80, fs.opp.get('wear', 0)) }}" alt="">
-      <div class="nm">{{ fs.o.name }}</div>
+      <div class="nm">{{ flag(fs.opp) }} {{ fs.o.name }}</div>
       <div class="muted">{{ fs.opp.record.w }}-{{ fs.opp.record.l }} &middot; {{ STYLES[fs.o_style].label }}</div>
       <div class="pill">{{ t("cards") }}: {{ fs.o.cards }}</div>
     </div>

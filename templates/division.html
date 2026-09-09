@@ -12,7 +12,7 @@
       <td>
         <span class="namecell">
           <img class="ava-xs" src="{{ ava_url(r.get('look'), 64, r.get('wear', 0)) }}" alt="">
-          <span>{% if r.is_player %}<b>{{ r.name }} (you)</b>{% else %}<a href="/fighter/{{ r.id }}">{{ r.name }}</a>{% endif %}
+          <span>{% if r.is_player %}{{ flag(r) }} <b>{{ r.name }} (you)</b>{% else %}{{ flag(r) }} <a href="/fighter/{{ r.id }}">{{ r.name }}</a>{% endif %}
           {% if r.nickname %}<span class="muted"> "{{ r.nickname }}"</span>{% endif %}</span>
         </span>
       </td>

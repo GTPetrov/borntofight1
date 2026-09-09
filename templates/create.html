@@ -2,28 +2,34 @@
 {% block body %}
 <form method="post" action="/create">
 <div class="panel">
-  <h2>{{ t("New fighter") }}</h2>
+  <h2>{{ t("New fighter") }}
+    <a href="/create" class="btn ghost" style="float:right;padding:6px 12px">&#127922; {{ t("Randomize") }}</a></h2>
   {% if legacy %}<p class="pill gold">Protege of {{ legacy.mentor }} - point pool boosted by {{ legacy.bonus_points }}</p>{% endif %}
   {% if error %}<p class="pill loss">{{ error }}</p>{% endif %}
   <div class="grid c2">
-    <label>{{ t("Name") }}<br><input name="name" required class="tin"></label>
-    <label>{{ t("Nickname") }}<br><input name="nickname" class="tin"></label>
-    <label>{{ t("Age") }} (18-33)<br><input name="age" type="number" value="22" min="18" max="33" class="tin"></label>
+    <label>{{ t("Name") }}<br><input name="name" required class="tin" value="{{ seed.name }}"></label>
+    <label>{{ t("Nickname") }}<br><input name="nickname" class="tin" value="{{ seed.nickname }}"></label>
+    <label>{{ t("Age") }} (18-33)<br><input name="age" type="number" value="{{ seed.age }}" min="18" max="33" class="tin"></label>
     <label>{{ t("Weight class") }}<br>
       <select name="weight" class="tin">
-        {% for key, label, _ in weights %}<option value="{{ key }}" {% if key=='light' %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        {% for key, label, _ in weights %}<option value="{{ key }}" {% if key==seed.weight %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>{{ t("Nationality") }}<br>
+      <select name="nation" class="tin">
+        {% for code, n in NATIONS.items() %}<option value="{{ code }}" {% if code==seed.nation %}selected{% endif %}>{{ n.flag }} {{ n.name }}</option>{% endfor %}
       </select>
     </label>
   </div>
   <div class="grid c2" style="margin-top:10px">
     <label>{{ t("Difficulty") }}<br>
       <select name="difficulty" class="tin" id="diff">
-        {% for key, d in DIFFICULTY.items() %}<option value="{{ key }}" {% if key=='normal' %}selected{% endif %}>{{ d.label }} - {{ d.desc }}</option>{% endfor %}
+        {% for key, d in DIFFICULTY.items() %}<option value="{{ key }}" {% if key==(seed.difficulty or 'normal') %}selected{% endif %}>{{ d.label }} - {{ d.desc }}</option>{% endfor %}
       </select>
     </label>
     <label>{{ t("Game mode") }}<br>
       <select name="mode" class="tin">
-        {% for key, m in GAME_MODES.items() %}<option value="{{ key }}">{{ m.label }} - {{ m.desc }}</option>{% endfor %}
+        {% for key, m in GAME_MODES.items() %}<option value="{{ key }}" {% if key==(seed.mode or 'standard') %}selected{% endif %}>{{ m.label }} - {{ m.desc }}</option>{% endfor %}
       </select>
     </label>
   </div>
@@ -37,7 +43,7 @@
       {% for key, opts in LOOKS.items() %}
       <label>{{ t({'skin':'Skin','hair':'Hair','hair_color':'Hair colour','beard':'Beard','build':'Build','trunks':'Trunks','stance':'Stance'}[key]) }}<br>
         <select class="tin lookf" data-k="{{ key }}" name="look_{{ key }}">
-          {% for label, code in opts %}<option value="{{ code }}">{{ label }}</option>{% endfor %}
+          {% for label, code in opts %}<option value="{{ code }}" {% if code==seed.look[key] %}selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
       </label>
       {% endfor %}
@@ -50,7 +56,7 @@
   <div class="grid c2">
     {% for key, st in STYLES.items() %}
     <label class="pickcard">
-      <input type="radio" name="style" value="{{ key }}" {% if key=='balanced' %}checked{% endif %}>
+      <input type="radio" name="style" value="{{ key }}" {% if key==seed.style %}checked{% endif %}>
       <span><b>{{ st.label }}</b><br><span class="muted">{{ st.desc }}</span></span>
     </label>
     {% endfor %}

@@ -4,7 +4,7 @@
   <div style="display:flex;gap:16px;align-items:flex-start">
     <img class="ava-md" src="{{ ava_url(o.get('look'), 130, o.get('wear', 0)) }}" alt="">
     <div>
-      <h2 style="margin:.1em 0">{{ o.name }}{% if o.nickname %} "{{ o.nickname }}"{% endif %}
+      <h2 style="margin:.1em 0">{{ flag(o) }} {{ o.name }}{% if o.nickname %} "{{ o.nickname }}"{% endif %}
          {% if o.champion %}<span class="pill gold">{{ t("CHAMPION") }}</span>{% else %}<span class="pill">#{{ o.rank }}</span>{% endif %}</h2>
       <p class="muted">{{ WEIGHT_LABELS[o.weight] }} &middot; {{ o.age|round|int }} {{ t("yrs") }} &middot; {{ STYLES[o.style].label }}
          &middot; {{ 'southpaw' if o.get('look',{}).get('stance')=='south' else 'orthodox' }}</p>

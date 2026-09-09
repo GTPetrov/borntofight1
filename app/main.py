@@ -76,7 +76,8 @@ templates.env.globals.update(
     TRAININGS=C.TRAININGS, ACTIONS=C.ACTIONS, WEIGHT_LABELS=C.WEIGHT_LABELS,
     STYLES=C.STYLES, TIERS=C.TIERS, STAFF=C.STAFF, CUTS=C.CUTS, TACTICS=C.TACTICS,
     LOOKS=C.LOOKS, DEFAULT_LOOK=C.DEFAULT_LOOK, DIFFICULTY=C.DIFFICULTY, PLANS=C.PLANS,
-    GAME_MODES=C.GAME_MODES, SPONSORS=C.SPONSORS, ACHIEVEMENTS=C.ACHIEVEMENTS,
+    GAME_MODES=C.GAME_MODES, SPONSORS=C.SPONSORS, ACHIEVEMENTS=C.ACHIEVEMENTS, NATIONS=C.NATIONS,
+    flag=lambda e: C.NATIONS.get((e or {}).get("nation", ""), {}).get("flag", ""),
     overall=G.overall, rating=G.rating, career_progress=G.career_progress,
     injury_risk=G.injury_risk,
     wear=G.wear, avatar=AV.portrait, date_str=W.date_str, ava_url=AV.url,
@@ -242,9 +243,10 @@ def slot_delete(slot: str = Form(...)):
 def create_form(request: Request):
     legacy = _legacy()
     pts = C.START_POINTS + (legacy["bonus_points"] if legacy else 0)
-    return render("create.html", request, attrs=G.default_attrs(), points=pts,
+    seed = G.random_seed(pts)                     # every new career starts different
+    return render("create.html", request, attrs=seed["attrs"], points=pts,
                   cap=C.START_ATTR_CAP, base=C.START_BASE, weights=C.WEIGHT_CLASSES,
-                  legacy=legacy, error=None)
+                  legacy=legacy, error=None, seed=seed)
 
 
 @app.post("/create")
@@ -262,6 +264,7 @@ async def create_submit(request: Request):
     age = max(18, min(33, age))
     weight = form.get("weight", "light")
     style = form.get("style", "balanced")
+    nation = form.get("nation", "USA")
     difficulty = form.get("difficulty", "normal")
     mode = form.get("mode", "standard")
     attrs = {}
@@ -276,17 +279,22 @@ async def create_submit(request: Request):
         if v in {code for _, code in opts}:
             look[k] = v
 
-    spent = sum(attrs[k] - C.START_BASE for k in C.ATTRS)
-    if spent > pts or any(v < C.START_BASE or v > C.START_ATTR_CAP for v in attrs.values()):
-        return render("create.html", request, attrs=attrs, points=pts, cap=C.START_ATTR_CAP,
-                      base=C.START_BASE, weights=C.WEIGHT_CLASSES, legacy=legacy,
-                      error="Invalid point spread.")
-    if len(G.list_saves()) >= 25:
-        return render("create.html", request, attrs=attrs, points=pts, cap=C.START_ATTR_CAP,
-                      base=C.START_BASE, weights=C.WEIGHT_CLASSES, legacy=legacy,
-                      error="Save slots full - delete an old career first.")
+    submitted = {"name": name, "nickname": nickname, "age": age, "weight": weight,
+                 "style": style, "nation": nation, "look": {**C.DEFAULT_LOOK, **look},
+                 "difficulty": difficulty, "mode": mode, "attrs": attrs}
 
-    state = G.new_state(name, nickname, age, weight, style, attrs, legacy, look, difficulty, mode)
+    spent = sum(attrs[k] - C.START_BASE for k in C.ATTRS)
+    err = None
+    if spent > pts or any(v < C.START_BASE or v > C.START_ATTR_CAP for v in attrs.values()):
+        err = "Invalid point spread."
+    elif len(G.list_saves()) >= 25:
+        err = "Save slots full - delete an old career first."
+    if err:
+        return render("create.html", request, attrs=attrs, points=pts, cap=C.START_ATTR_CAP,
+                      base=C.START_BASE, weights=C.WEIGHT_CLASSES, legacy=legacy,
+                      error=err, seed=submitted)
+
+    state = G.new_state(name, nickname, age, weight, style, attrs, legacy, look, difficulty, mode, nation)
     G.save(state)
     G.set_active(state["slot"])
     _legacy_file().unlink(missing_ok=True)

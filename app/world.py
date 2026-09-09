@@ -17,12 +17,13 @@ def _uid(world) -> str:
     return f"f{world['seq']}"
 
 
-def _name(used: set) -> tuple[str, str]:
+def _person(used: set) -> tuple[str, str, str]:
     for _ in range(200):
-        n = f"{random.choice(C.FIRST_NAMES)} {random.choice(C.LAST_NAMES)}"
-        if n not in used:
-            return n, random.choice(C.NICKNAMES)
-    return f"{random.choice(C.FIRST_NAMES)} {random.choice(C.LAST_NAMES)} {random.randint(2, 9)}", random.choice(C.NICKNAMES)
+        code, name, nick = C.random_person(random)
+        if name not in used:
+            return code, name, nick
+    code, name, nick = C.random_person(random)
+    return code, f"{name} {random.randint(2, 9)}", nick
 
 
 def _diff_opp(world) -> float:
@@ -37,14 +38,14 @@ def make_npc(world, weight: str, tier: int, rank: int, used: set) -> dict:
     for k in C.ATTRS:
         v = lvl + style["mods"].get(k, 0) + random.uniform(-6, 6)
         attrs[k] = int(max(20, min(97, v)))
-    name, nick = _name(used)
+    code, name, nick = _person(used)
     used.add(name)
     fights = max(3, rank + tier * 5 + random.randint(0, 10))
     wins = int(fights * random.uniform(0.5, 0.82))
     losses = max(0, fights - wins - random.randint(0, 2))
     return {
         "id": _uid(world),
-        "name": name, "nickname": nick, "weight": weight,
+        "name": name, "nickname": nick, "weight": weight, "nation": code,
         "style": style_key, "attrs": attrs, "tier": tier,
         "look": C.random_look(random),
         "wear": random.randint(0, 2),
@@ -327,6 +328,7 @@ def _player_shadow(f: dict) -> dict:
         "id": f["id"], "name": f["name"], "nickname": f["nickname"], "weight": f["weight"],
         "style": f["style"], "attrs": f["attrs"], "record": f["record"], "tier": f["tier"],
         "belts": f.get("belts", []), "win_streak": f.get("win_streak", 0),
+        "nation": f.get("nation", "USA"),
         "look": f.get("look", C.DEFAULT_LOOK),
         "wear": int(f.get("fights", 0) > 8) + int(f.get("fights", 0) > 20) + int(f.get("brain", 100) < 68),
         "rank": f["rank"], "champion": f["champion"], "age": int(f["age"]),

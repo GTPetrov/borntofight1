@@ -5,7 +5,7 @@
   <div style="display:flex;gap:16px;align-items:flex-start">
     <img class="ava-md" src="{{ ava_url(f.look, 120, wear(f)) }}" alt="">
     <div style="flex:1">
-      <h2 style="margin:.1em 0">{{ f.name }}{% if f.nickname %} "{{ f.nickname }}"{% endif %}</h2>
+      <h2 style="margin:.1em 0">{{ flag(f) }} {{ f.name }}{% if f.nickname %} "{{ f.nickname }}"{% endif %}</h2>
       <div class="grid c3">
         <div class="stat-line"><span>{{ t("Record") }}</span><b>{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }}</b></div>
         <div class="stat-line"><span>{{ t("KO / Submissions") }}</span><b>{{ f.ko_wins }} / {{ f.sub_wins }}</b></div>
