@@ -20,10 +20,12 @@ def init_fight(player_attrs, opp, max_rounds, for_title,
                 "r_sig": 0, "r_dmg": 0.0, "r_td": 0, "r_ctrl": 0.0, "r_sub": 0, "r_kd": 0}
 
     o_style = opp.get("style", "balanced")
+    o_tier = max(0, min(opp.get("tier", 0), len(C.TIERS) - 1))
     return {
         "round": 1, "max_rounds": max_rounds, "exchange": 0,
         "pos": "stand", "top": None, "passed": False, "for_title": for_title,
         "player_attrs": dict(player_attrs), "opp": opp,
+        "o_edge": C.TIERS[o_tier].get("edge", 0.0),
         "p_style": p_style, "o_style": o_style,
         "p_stance": p_stance, "o_stance": opp.get("look", {}).get("stance", "ortho"),
         "p_pass": C.STYLES.get(p_style, {}).get("passive", {}),
@@ -110,14 +112,25 @@ def _ai_combo(state):
     o, p = state["o"], state["p"]
     ai = C.STYLES[state["o_style"]]["ai"]
     pos = state["pos"]
+    edge = state.get("o_edge", 0.0)
     aggr = 1.0
     if p["hp"] < 32 or p["rocked"] > 0:
-        aggr = 1.4
+        aggr = 1.4 + 0.5 * edge          # sharper pros jump on a hurt opponent
     if o["hp"] < 30 or o["stamina"] < 20:
         aggr = 0.55
     counter = 1.0
     if state["p_style"] in ("striker", "brawler") and state["o_style"] in ("wrestler", "grappler"):
-        counter = 1.5
+        counter = 1.5 + 0.4 * edge
+    # protect a clear lead late - only fighters with ring IQ do this
+    ahead = o["hp"] - p["hp"]
+    if (edge and ahead > 18 and state["round"] >= state["max_rounds"] - 1
+            and random.random() < 0.4 * edge):
+        if pos == "stand":
+            return ["defend_stand"]
+        if pos == "clinch":
+            return ["defend_clinch"]
+        if pos == "ground" and state["top"] == "opp":
+            return ["control"]
 
     if pos == "stand":
         cat = _weighted({"strike": ai["strike"] * aggr, "takedown": ai["takedown"] * counter,
@@ -131,8 +144,10 @@ def _ai_combo(state):
         first = _weighted({"jab": 0.32, "cross": 0.22 * aggr, "body": 0.14,
                            "lowkick": 0.14, "midkick": 0.10, "headkick": 0.08 * aggr})
         combo = [first]
-        if random.random() < 0.3 * aggr and C.ACTIONS[first].get("combo"):
+        if C.ACTIONS[first].get("combo") and random.random() < (0.3 + 0.4 * edge) * aggr:
             combo.append(_weighted({"jab": 0.45, "cross": 0.28 * aggr, "body": 0.17, "midkick": 0.1}))
+            if edge > 0.6 and random.random() < 0.35 * edge and C.ACTIONS[combo[-1]].get("combo"):
+                combo.append(_weighted({"cross": 0.4, "headkick": 0.25 * aggr, "body": 0.2, "jab": 0.15}))
         return combo
 
     if pos == "clinch":
@@ -302,6 +317,8 @@ def resolve(state, player_actions) -> list[str]:
         if who == "player" and state["tactic"] == "pressure":
             regen *= 0.7
         card = _attrs(state, who)["cardio"]
+        if who == "opp" and state.get("o_edge"):
+            regen *= 1 + 0.14 * state["o_edge"]        # elite pros pace themselves
         s["stamina"] = min(100.0, s["stamina"] + regen * (0.6 + card / 150.0))
         if s["rocked"] > 0:
             s["rocked"] -= 1
@@ -350,6 +367,9 @@ def _do_strike(state, atk_who, action_key, def_action_key, extra_acc=0.0):
         acc -= 0.03
     if atk_who == "opp" and state["tactic"] == "counter" and d_act["kind"] != "strike":
         acc -= 0.05
+    edge = state.get("o_edge", 0.0)
+    if edge:
+        acc += 0.045 * edge if atk_who == "opp" else -0.03 * edge
     acc = min(0.95, max(0.05, acc))
 
     subj = "You" if atk_who == "player" else atk["name"]
@@ -371,6 +391,8 @@ def _do_strike(state, atk_who, action_key, def_action_key, extra_acc=0.0):
         dmg *= 1.15
     if atk_who == "player" and state["tactic"] == "conserve":
         dmg *= 0.8
+    if atk_who == "opp" and edge:
+        dmg *= 1 + 0.07 * edge
     dmg = max(1.0, dmg)
     dfn["hp"] = max(0.0, dfn["hp"] - dmg)
     atk["r_dmg"] += dmg
@@ -436,6 +458,10 @@ def _takedown(state, atk_who, dfn_who, resisted=False, from_clinch=False):
         dff *= 1.06
     if atk_who == "player":
         att *= 1.04
+    _edge = state.get("o_edge", 0.0)
+    if _edge:
+        att *= 1 + 0.06 * _edge if atk_who == "opp" else 1.0
+        dff *= 1 + 0.07 * _edge if dfn_who == "opp" else 1.0
     if resisted:
         dff *= 1.15
     if from_clinch:
@@ -751,4 +777,6 @@ def win_prob(player_attrs, opp) -> int:
         return (a["power"] * 1.1 + a["striking"] * 1.2 + a["wrestling"] + a["bjj"]
                 + a["cardio"] * 0.9 + a["chin"] * 0.8) / 6.0
     d = pw(player_attrs) - pw(opp["attrs"])
-    return int(max(5, min(95, 52 + d * 2.4)))
+    o_tier = max(0, min(opp.get("tier", 0), len(C.TIERS) - 1))
+    edge = C.TIERS[o_tier].get("edge", 0.0)
+    return int(max(5, min(95, 52 + d * 2.4 - edge * 6)))

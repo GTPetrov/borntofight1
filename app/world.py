@@ -33,15 +33,22 @@ def _diff_opp(world) -> float:
 def make_npc(world, weight: str, tier: int, rank: int, used: set) -> dict:
     style_key = random.choice(list(C.STYLES))
     style = C.STYLES[style_key]
-    lvl = C.TIERS[tier]["opp_base"] + (C.DIVISION_SIZE - rank) * 1.5 + _diff_opp(world) + random.uniform(-5, 5)
+    standing = C.DIVISION_SIZE - rank                      # 0 (bottom) .. 15 (champ)
+    # higher tiers: less spread (everyone is a polished pro) and a rising skill floor
+    lvl_noise = max(1.5, 5.0 - 0.5 * tier)
+    attr_noise = max(1.8, 6.0 - 0.7 * tier)
+    floor = min(72, 20 + tier * 9)
+    lvl = C.TIERS[tier]["opp_base"] + standing * 1.5 + _diff_opp(world) + random.uniform(-lvl_noise, lvl_noise)
     attrs = {}
     for k in C.ATTRS:
-        v = lvl + style["mods"].get(k, 0) + random.uniform(-6, 6)
-        attrs[k] = int(max(20, min(97, v)))
+        v = lvl + style["mods"].get(k, 0) + random.uniform(-attr_noise, attr_noise)
+        attrs[k] = int(max(floor, min(97, v)))
     code, name, nick = _person(used)
     used.add(name)
-    fights = max(3, rank + tier * 5 + random.randint(0, 10))
-    wins = int(fights * random.uniform(0.5, 0.82))
+    # standing drives experience and record - ranked fighters have real bodies of work
+    fights = 6 + standing + tier * 3 + random.randint(0, 6)
+    winrate = min(0.9, 0.52 + standing * 0.02 + tier * 0.01)
+    wins = int(round(fights * winrate))
     losses = max(0, fights - wins - random.randint(0, 2))
     return {
         "id": _uid(world),
