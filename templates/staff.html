@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <h2>{{ t("Coaching staff") }}</h2>
+  <p class="muted">{{ t("Cash") }}: <b>${{ f.money }}</b>. {{ t("Every coach level speeds up the relevant attributes in camp by") }}
+     {{ (C.STAFF_GAIN_PER_LEVEL*100)|round|int }}%.</p>
+  <div class="grid c2">
+    {% for key, s in STAFF.items() %}
+    {% set lvl = f.staff[key] %}
+    <div class="panel" style="margin:0">
+      <h3 style="margin-top:0">{{ s.label }} - {{ t("level") }} {{ lvl }}/{{ C.STAFF_MAX_LEVEL }}</h3>
+      <p class="muted">{{ s.desc }}</p>
+      <div class="bar" style="margin:8px 0"><i style="width:{{ (100*lvl/C.STAFF_MAX_LEVEL)|round }}%"></i></div>
+      {% if lvl < C.STAFF_MAX_LEVEL %}
+      <form method="post" action="/staff/buy">
+        <input type="hidden" name="key" value="{{ key }}">
+        <button class="btn" type="submit" {% if f.money < C.STAFF_COST[lvl+1] %}disabled{% endif %}>
+          {{ t("Promote for") }} ${{ C.STAFF_COST[lvl+1] }}
+        </button>
+      </form>
+      {% else %}<span class="pill gold">{{ t("maximum level") }}</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <p style="margin-top:14px"><a href="/hub">&larr; {{ t("Back to camp") }}</a></p>
+</div>
+{% endblock %}

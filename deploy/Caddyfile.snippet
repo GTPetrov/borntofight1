@@ -1,0 +1,7 @@
+# Append this block to /etc/caddy/Caddyfile (below the existing ekstraciapa block).
+# Replace YOURSUB with the new DuckDNS subdomain you create for the game.
+# Caddy fetches and renews the HTTPS certificate automatically - nothing else to do.
+
+YOURSUB.duckdns.org {
+    reverse_proxy localhost:8001
+}

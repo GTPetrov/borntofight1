@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="panel">
+  <div style="display:flex;gap:16px;align-items:flex-start">
+    <img class="ava-md" src="{{ ava_url(f.look, 120, wear(f)) }}" alt="">
+    <div style="flex:1">
+      <h2 style="margin:.1em 0">{{ f.name }}{% if f.nickname %} "{{ f.nickname }}"{% endif %}</h2>
+      <div class="grid c3">
+        <div class="stat-line"><span>{{ t("Record") }}</span><b>{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }}</b></div>
+        <div class="stat-line"><span>{{ t("KO / Submissions") }}</span><b>{{ f.ko_wins }} / {{ f.sub_wins }}</b></div>
+        <div class="stat-line"><span>{{ t("Fights") }}</span><b>{{ f.fights }}</b></div>
+        <div class="stat-line"><span>{{ t("Age") }}</span><b>{{ f.age|round(1) }}</b></div>
+        <div class="stat-line"><span>{{ t("Level") }}</span><b>{{ tier.short }}{% if f.champion %} ({{ t("champ") }}){% endif %}</b></div>
+        <div class="stat-line"><span>{{ t("Career earnings") }}</span><b>${{ f.money }}</b></div>
+        <div class="stat-line"><span>{{ t("Brain health") }}</span><b class="{{ 'txt-red' if f.brain<60 }}">{{ f.brain }}</b></div>
+        <div class="stat-line"><span>{{ t("Style") }}</span><b>{{ STYLES[f.style].label }}</b></div>
+      </div>
+    </div>
+  </div>
+  {% if f.belts %}<p style="margin-top:12px">{{ t("Titles") }}: {% for b in f.belts %}<span class="pill gold">{{ b }}</span> {% endfor %}</p>{% endif %}
+  {% if f.retired %}<p class="pill loss">{{ t("CAREER OVER") }}</p>{% endif %}
+</div>
+
+{% if hof %}
+<div class="panel" style="border-color:var(--accent-2)">
+  <h2>{{ t("Hall of Fame") }}</h2>
+  <p style="font-size:20px;margin:.2em 0"><b>{{ hof.tier }}</b></p>
+  <p class="muted">{{ hof.blurb }}</p>
+  <div class="stat-line"><span>Legacy score</span><b>{{ hof.score }}</b></div>
+  <div class="stat-line"><span>{{ t("All-time rank") }}</span><b>#{{ hof.all_time_rank }}</b></div>
+</div>
+{% endif %}
+
+{% if legacy %}
+<div class="panel" style="border-color:var(--accent-2)">
+  <h2>{{ t("Legacy") }}</h2>
+  <p>You can coach a protege who inherits part of your legacy:
+     <b>+{{ legacy.bonus_points }}</b> attribute points, <b>${{ legacy.money }}</b>,
+     <b>+{{ legacy.hype }}</b> popularity{% if legacy.staff %}, a ready coaching team{% endif %}.</p>
+  <form method="post" action="/legacy"><button class="btn big" type="submit">{{ t("Coach a protege") }}</button></form>
+</div>
+{% endif %}
+
+<div class="grid c2">
+  <div class="panel">
+    <h2>{{ t("Records") }}</h2>
+    <div class="stat-line"><span>{{ t("Longest win streak") }}</span><b>{{ f.records.longest_streak }}</b></div>
+    <div class="stat-line"><span>{{ t("Fastest KO (round)") }}</span><b>{{ f.records.fastest_ko or '-' }}</b></div>
+    <div class="stat-line"><span>{{ t("Biggest upset (OVR gap)") }}</span><b>{{ f.records.biggest_upset }}</b></div>
+    <div class="stat-line"><span>{{ t("Times to the distance") }}</span><b>{{ f.records.distance }}</b></div>
+    <div class="stat-line"><span>{{ t("Career earnings") }}</span><b>${{ f.records.career_purses }}</b></div>
+  </div>
+  <div class="panel">
+    <h2>{{ t("Achievements") }} ({{ f.achievements|length }}/{{ ACHIEVEMENTS|length }})</h2>
+    <div class="achlist">
+      {% for aid, lbl, desc in ACHIEVEMENTS %}
+      <div class="ach {{ 'got' if aid in f.achievements }}" title="{{ desc }}">
+        <span>{{ '&#127894;'|safe if aid in f.achievements else '&#128274;'|safe }}</span>
+        <span><b>{{ lbl }}</b><br><span class="muted">{{ desc }}</span></span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% if f.replays %}
+<div class="panel">
+  <h2>{{ t("Replays") }}</h2>
+  <div class="log">
+    {% for r in f.replays %}
+    <div class="ex"><a href="/replay/{{ loop.index0 }}">
+      {{ 'W' if r.outcome=='win' else 'L' if r.outcome=='loss' else 'D' }} {{ r.method }}, R{{ r.round }} vs {{ r.opp }} &middot; {{ r.tier }} &middot; {{ r.date }}
+    </a></div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if rivalries %}
+<div class="panel">
+  <h2>{{ t("Rivalries") }}</h2>
+  <table>
+    <tr><th>Rival</th><th>H2H</th><th>{{ t("Fights") }}</th><th>Heat</th></tr>
+    {% for r in rivalries %}
+    <tr><td>{{ r.name }}</td><td>{{ r.pw }}-{{ r.ow }}{% if r.draws %}-{{ r.draws }}{% endif %}</td>
+        <td>{{ r.fights }}</td><td>{{ r.heat }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>{{ t("Fight history") }}</h2>
+  <div class="log">{% for h in f.history %}<div class="ex"><span class="l">{{ h }}</span></div>
+  {% else %}<div class="ex"><span class="l muted">No fights.</span></div>{% endfor %}</div>
+</div>
+
+<div class="panel">
+  <h2>{{ t("Chronicle") }}</h2>
+  <div class="log">{% for l in f.log %}<div class="ex"><span class="l">{{ l }}</span></div>{% endfor %}</div>
+</div>
+
+{% if f.retired %}<a class="btn ghost" href="/">{{ t("Main menu") }}</a>
+{% else %}<a class="btn big" href="/hub">{{ t("Back to camp ") }}</a>{% endif %}
+{% endblock %}

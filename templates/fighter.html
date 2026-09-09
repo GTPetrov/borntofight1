@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <div style="display:flex;gap:16px;align-items:flex-start">
+    <img class="ava-md" src="{{ ava_url(o.get('look'), 130, o.get('wear', 0)) }}" alt="">
+    <div>
+      <h2 style="margin:.1em 0">{{ o.name }}{% if o.nickname %} "{{ o.nickname }}"{% endif %}
+         {% if o.champion %}<span class="pill gold">{{ t("CHAMPION") }}</span>{% else %}<span class="pill">#{{ o.rank }}</span>{% endif %}</h2>
+      <p class="muted">{{ WEIGHT_LABELS[o.weight] }} &middot; {{ o.age|round|int }} {{ t("yrs") }} &middot; {{ STYLES[o.style].label }}
+         &middot; {{ 'southpaw' if o.get('look',{}).get('stance')=='south' else 'orthodox' }}</p>
+    </div>
+  </div>
+  <div class="grid c3">
+    <div class="stat-line"><span>{{ t("Record") }}</span><b>{{ o.record.w }}-{{ o.record.l }}-{{ o.record.d }}</b></div>
+    <div class="stat-line"><span>KO / Sub</span><b>{{ o.ko }} / {{ o.sub }}</b></div>
+    <div class="stat-line"><span>{{ t("Form") }}</span><b>{% for x in o.form %}{{ x }}{% endfor %}</b></div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>{{ t("Tale of the tape") }}</h2>
+  <table>
+    <tr><th>{{ t("Attributes") }}</th><th>You</th><th>{{ o.name }}</th></tr>
+    {% for label, mine, theirs in tale %}
+    <tr><td>{{ label }}</td>
+        <td class="{{ 'txt-green' if mine>theirs }}">{{ mine }}</td>
+        <td class="{{ 'txt-green' if theirs>mine }}">{{ theirs }}</td></tr>
+    {% endfor %}
+  </table>
+  <p style="margin-top:10px">{{ t("Estimated chance for you") }}: <b>{{ prob }}%</b></p>
+</div>
+
+{% if riv and riv.fights %}
+<div class="panel">
+  <h2>{{ t("Your history") }}</h2>
+  <p>H2H: <b>{{ riv.pw }}-{{ riv.ow }}{% if riv.draws %}-{{ riv.draws }}{% endif %}</b> &middot; heat {{ riv.heat }}</p>
+  <div class="log">{% for l in riv.log %}<div class="ex"><span class="l">{{ l }}</span></div>{% endfor %}</div>
+</div>
+{% endif %}
+
+<p><a href="/division">&larr; {{ t("Division") }}</a></p>
+{% endblock %}

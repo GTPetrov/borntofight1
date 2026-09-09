@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Born to Fight{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1><a href="/" style="color:inherit">Born to <span>Fight</span></a></h1>
+    <nav>
+      <a href="/hub">{{ t("Camp") }}</a>
+      <a href="/division">{{ t("Division") }}</a>
+      <a href="/staff">{{ t("Staff") }}</a>
+      <a href="/sponsors">{{ t("Sponsors") }}</a>
+      <a href="/career">{{ t("Career") }}</a>
+      <a href="/">{{ t("Menu") }}</a>
+      <span class="langsw">{% if lang == 'pl' %}<a href="/lang/en">EN</a> · <b>PL</b>{% else %}<b>EN</b> · <a href="/lang/pl">PL</a>{% endif %}</span>
+    </nav>
+  </div>
+</header>
+<main class="wrap">
+  {% block body %}{% endblock %}
+</main>
+</body>
+</html>

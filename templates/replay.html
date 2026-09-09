@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <h2>{{ t("Replays") }}</h2>
+  <p style="font-size:17px">
+    {{ 'W' if rep.outcome=='win' else 'L' if rep.outcome=='loss' else 'D' }}
+    {{ rep.method }}, {{ t("Round") }} {{ rep.round }} vs <b>{{ rep.opp }}</b>{% if rep.nick %} "{{ rep.nick }}"{% endif %}
+  </p>
+  <p class="muted">{{ rep.tier }} &middot; {{ rep.date }}</p>
+  <div class="log">
+    {% for l in rep.log %}<div class="ex"><span class="l {% if '>>>' in l or 'SUBMISSION' in l %}big{% endif %}">{{ l }}</span></div>
+    {% else %}<div class="ex"><span class="l muted">No play-by-play recorded.</span></div>{% endfor %}
+  </div>
+  <p style="margin-top:12px"><a href="/career">&larr; {{ t("Career") }}</a></p>
+</div>
+{% endblock %}

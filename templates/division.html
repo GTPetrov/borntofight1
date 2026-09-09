@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <h2>{{ t("Division") }}: {{ WEIGHT_LABELS[f.weight] }} &middot; {{ TIERS[world.tier].short }}</h2>
+  <p class="muted">{{ date_str(world) }}
+    {% if champ %}&middot; {{ t("Champion") }}: <b>{{ champ.name }}</b>{% else %}&middot; {{ t("vacant title") }}{% endif %}</p>
+  <table>
+    <tr><th>#</th><th>{{ t("Fighter") }}</th><th>{{ t("Record") }}</th><th>{{ t("Style") }}</th><th>{{ t("Form") }}</th><th>OVR</th></tr>
+    {% for r in roster %}
+    <tr class="{{ 'me' if r.is_player }}">
+      <td>{% if r.champion %}&#128081;{% else %}{{ r.rank }}{% endif %}</td>
+      <td>
+        <span class="namecell">
+          <img class="ava-xs" src="{{ ava_url(r.get('look'), 64, r.get('wear', 0)) }}" alt="">
+          <span>{% if r.is_player %}<b>{{ r.name }} (you)</b>{% else %}<a href="/fighter/{{ r.id }}">{{ r.name }}</a>{% endif %}
+          {% if r.nickname %}<span class="muted"> "{{ r.nickname }}"</span>{% endif %}</span>
+        </span>
+      </td>
+      <td>{{ r.record.w }}-{{ r.record.l }}-{{ r.record.d }}</td>
+      <td>{{ STYLES[r.style].label }}</td>
+      <td>{% for x in r.form %}<span class="pill {{ 'win' if x=='W' else 'loss' if x=='L' else '' }}">{{ x }}</span>{% endfor %}</td>
+      <td>{{ ((r.attrs.power+r.attrs.striking+r.attrs.wrestling+r.attrs.bjj+r.attrs.cardio+r.attrs.chin)/6)|round|int }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p style="margin-top:12px"><a href="/hub">&larr; {{ t("Camp") }}</a></p>
+</div>
+{% endblock %}

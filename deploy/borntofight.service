@@ -1,0 +1,16 @@
+# ~/borntofight.service  ->  copied to /etc/systemd/system/borntofight.service
+# Same pattern as ekstraklasa-betting.service. Bound to localhost; Caddy proxies to it.
+[Unit]
+Description=Born to Fight - MMA career simulator
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/borntofight
+ExecStart=/home/ubuntu/borntofight/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001
+Restart=always
+RestartSec=5
+User=ubuntu
+
+[Install]
+WantedBy=multi-user.target

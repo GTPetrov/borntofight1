@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <h2>{{ t("Contract offers") }}</h2>
+  <p class="muted">{{ t("Your current contract is ending. Choose your next move.") }}</p>
+  <div class="grid c3">
+    {% for o in offers %}
+    <div class="panel" style="margin:0">
+      <h3 style="margin-top:0">{{ o.org }}</h3>
+      <p class="muted">{{ o.desc }}</p>
+      <div class="stat-line"><span>{{ t("Purse") }}</span><b>${{ o.purse }}</b></div>
+      <div class="stat-line"><span>{{ t("Win bonus") }}</span><b>${{ o.bonus }}</b></div>
+      <div class="stat-line"><span>{{ t("Fights on the deal") }}</span><b>{{ o.fights }}</b></div>
+      <div class="stat-line"><span>{{ t("Exposure") }}</span><b>&times;{{ o.hype_mult }}</b></div>
+      <form method="post" action="/offers/sign" style="margin-top:10px">
+        <input type="hidden" name="offer" value="{{ o.id }}">
+        <button class="btn big" type="submit">{{ t("Sign") }}</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

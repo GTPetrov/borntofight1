@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <h2>{{ t("Weigh-in") }}</h2>
+  <p style="font-size:17px">{{ t("Fight") }}: <b>{{ stakes.opp.name }}</b>
+     {% if stakes.opp.nickname %}"{{ stakes.opp.nickname }}"{% endif %}
+     &middot; #{{ stakes.opp.rank }} &middot; {{ STYLES[stakes.opp.style].label }}
+     {% if stakes.for_title %}<span class="pill gold">{{ t("for the title") }}</span>{% endif %}</p>
+  <p class="muted">{{ stakes.org }} &middot; {{ stakes.date }} &middot; {{ t("Estimated chance") }} {{ stakes.prob }}%</p>
+
+  <form method="post" action="/weighin">
+    <h3>{{ t("Weight cut strategy") }}</h3>
+    <div class="actions">
+      {% for key, cut in CUTS.items() %}
+      <label class="pickcard">
+        <input type="radio" name="cut" value="{{ key }}" {% if key=='standard' %}checked{% endif %}>
+        <span><b>{{ cut.label }}</b><br><span class="muted">{{ cut.desc }}
+          ({{ t("starting stamina") }} {{ cut.stamina }}{% if cut.attr_hit %}, {{ t("temporary attribute drop") }}{% endif %})</span></span>
+      </label>
+      {% endfor %}
+    </div>
+    <button class="btn big" type="submit" style="margin-top:12px">{{ t("To the cage") }} &rarr;</button>
+  </form>
+  <p style="margin-top:10px"><a href="/hub">&larr; {{ t("Not yet - back to camp") }}</a></p>
+</div>
+{% endblock %}

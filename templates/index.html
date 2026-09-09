@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block body %}
+
+{% if legacy %}
+<div class="panel" style="border-color:var(--accent-2)">
+  <h2>{{ t("Legacy") }}</h2>
+  <p>You're coaching the successor to <b>{{ legacy.mentor }}</b> ({{ legacy.record }}, {{ legacy.titles }} title(s)).
+     Starting bonus: <b>+{{ legacy.bonus_points }}</b> attribute points, <b>${{ legacy.money }}</b>,
+     <b>+{{ legacy.hype }}</b> popularity{% if legacy.staff %}, a coaching team{% endif %}.</p>
+  <a class="btn big" href="/create">{{ t("Start career") }}</a>
+</div>
+{% endif %}
+
+<div class="panel hero">
+  <h2>Born to Fight</h2>
+  <p>{{ t("A career simulator: build a fighter, run camp and a coaching team, cut weight, fight turn-based - combo by combo - and climb a living division of rivals to the top.") }}</p>
+  {% if not legacy %}<a class="btn big" href="/create">{{ t("New career") }}</a>{% endif %}
+</div>
+
+{% if saves %}
+<div class="panel">
+  <h2>{{ t("Saved careers") }}</h2>
+  <table>
+    <tr><th>{{ t("Fighter") }}</th><th>{{ t("Record") }}</th><th>{{ t("Level") }}</th><th>{{ t("Status") }}</th><th></th></tr>
+    {% for s in saves %}
+    <tr>
+      <td>
+        <span class="namecell">
+          <img class="ava-xs" src="{{ ava_url(s.look, 64, s.wear) }}" alt="">
+          <span><b>{{ s.name }}</b>{% if s.nickname %} "{{ s.nickname }}"{% endif %}
+          {% if s.slot == active %}<span class="pill">{{ t("active") }}</span>{% endif %}
+          {% if s.mode != 'standard' %}<span class="pill">{{ GAME_MODES[s.mode].label }}</span>{% endif %}</span>
+        </span>
+      </td>
+      <td>{{ s.record.w }}-{{ s.record.l }}-{{ s.record.d }}</td>
+      <td>{{ s.tier }}{% if s.champion %} <span class="pill gold">{{ t("champ") }}</span>{% endif %}</td>
+      <td>{% if s.retired %}<span class="pill loss">{{ t("retired") }}</span>{% else %}{{ t("active fighter") }}{% endif %}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <form method="post" action="/slot/activate" style="display:inline">
+          <input type="hidden" name="slot" value="{{ s.slot }}">
+          <button class="btn ghost" type="submit">{{ t("Play") }}</button>
+        </form>
+        <form method="post" action="/slot/delete" style="display:inline"
+              onsubmit="return confirm('Delete {{ s.name }}?')">
+          <input type="hidden" name="slot" value="{{ s.slot }}">
+          <button class="btn ghost" type="submit">&times;</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>{{ t("How it works") }}</h2>
+  <div class="grid c3">
+    <div><h3>{{ t("Fighter & style") }}</h3><p class="muted">6 attributes + a fighting style (striker, wrestler, grappler, brawler, well-rounded) with passive bonuses.</p></div>
+    <div><h3>{{ t("Camp, staff, weight") }}</h3><p class="muted">Train, hire coaches, sign a sponsor, choose your weight cut before every fight.</p></div>
+    <div><h3>{{ t("Turn-based fight") }}</h3><p class="muted">Build 1-3 strike combos, change tactics in the corner, read the judges' cards, watch for cuts.</p></div>
+    <div><h3>{{ t("Living division") }}</h3><p class="muted">12 rivals with records and form fight each other. The ranking lives, the champion can lose the belt.</p></div>
+    <div><h3>{{ t("Rivalries") }}</h3><p class="muted">Rematches, a head-to-head record, grudge fights that pay more.</p></div>
+    <div><h3>{{ t("Health & legacy") }}</h3><p class="muted">Knockouts wreck your health. Retire and coach a protege. Achievements and a Hall of Fame.</p></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="panel">
+  <div class="fight-head">
+    <div class="who">
+      <img class="ava-md" src="{{ ava_url(f.look, 96, wear(f)) }}" alt="">
+      <div class="nm">You</div><div class="muted">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }} &middot; {{ STYLES[fs.p_style].label }}</div>
+      <div class="pill">{{ t("cards") }}: {{ fs.p.cards }}</div>
+    </div>
+    <div class="who"><div class="vs">VS</div>
+      <div class="muted">{{ t("Round") }} {{ fs.round }}/{{ fs.max_rounds }}{% if not fs.over %} &middot; {{ t("exchange") }} {{ fs.exchange + 1 }}/5{% endif %}</div>
+      <div class="pill">{{ TACTICS[fs.tactic].label }}</div>
+      {% if fs.p_stance != fs.o_stance %}<div class="pill">ortho vs southpaw</div>{% endif %}
+    </div>
+    <div class="who">
+      <img class="ava-md" src="{{ ava_url(fs.opp.get('look'), 96, fs.opp.get('wear', 0)) }}" alt="">
+      <div class="nm">{{ fs.o.name }}</div>
+      <div class="muted">{{ fs.opp.record.w }}-{{ fs.opp.record.l }} &middot; {{ STYLES[fs.o_style].label }}</div>
+      <div class="pill">{{ t("cards") }}: {{ fs.o.cards }}</div>
+    </div>
+  </div>
+
+  <div class="fbars">
+    <div class="lbl"><span>Your health</span><span>{{ bars.p_hp }}</span></div><div class="bar hp"><i style="width:{{ bars.p_hp }}%"></i></div>
+    <div class="lbl"><span>Your stamina</span><span>{{ bars.p_sta }}</span></div><div class="bar sta"><i style="width:{{ bars.p_sta }}%"></i></div>
+    <hr style="border-color:var(--line);margin:12px 0">
+    <div class="lbl"><span>{{ fs.o.name }} health</span><span>{{ bars.o_hp }}</span></div><div class="bar hp"><i style="width:{{ bars.o_hp }}%"></i></div>
+    <div class="lbl"><span>{{ fs.o.name }} stamina</span><span>{{ bars.o_sta }}</span></div><div class="bar sta"><i style="width:{{ bars.o_sta }}%"></i></div>
+  </div>
+  <p style="text-align:center;margin:6px 0 0"><span class="pill">{{ pos }}</span>
+    {% if fs.p.rocked %}<span class="pill loss">{{ t("You're rocked") }}</span>{% endif %}
+    {% if fs.o.rocked %}<span class="pill win">{{ t("Opponent rocked") }}</span>{% endif %}
+    {% if fs.p.cut and fs.p.cut >= 25 %}<span class="pill loss">you're cut</span>{% endif %}
+    {% if fs.o.cut and fs.o.cut >= 25 %}<span class="pill win">opponent cut</span>{% endif %}
+    {% if fs.passed %}<span class="pill">{{ t("guard passed") }}</span>{% endif %}
+  </p>
+
+  {% if fs.scorecard %}
+  <table style="margin-top:10px">
+    <tr><th>{{ t("Round") }}</th>{% for s in fs.scorecard %}<td>{{ s.round }}</td>{% endfor %}<th>&Sigma;</th></tr>
+    <tr><td>You</td>{% for s in fs.scorecard %}<td>{{ s.p }}</td>{% endfor %}<td><b>{{ fs.p.cards }}</b></td></tr>
+    <tr><td>{{ fs.o.name }}</td>{% for s in fs.scorecard %}<td>{{ s.o }}</td>{% endfor %}<td><b>{{ fs.o.cards }}</b></td></tr>
+  </table>
+  {% endif %}
+</div>
+
+{% if recap %}
+<div class="panel">
+  <h2>{% if recap.final %}{{ t("Fight over - decision") }}{% else %}{{ t("Corner after round") }} {{ recap.round }}{% endif %}</h2>
+  <p>{{ t("round for") }}: <b>{{ recap.winner }}</b>{% if recap.dominant %} <span class="pill">10-8</span>{% endif %}
+     &middot; {{ t("points") }} {{ recap.p_score }} : {{ recap.o_score }} &middot; {{ t("cards") }} {{ recap.p_cards }} : {{ recap.o_cards }}</p>
+  {% if advice %}<div class="log">{% for a in advice %}<div class="ex"><span class="l">&#129354; {{ a }}</span></div>{% endfor %}</div>{% endif %}
+  {% if recap.can_corner %}
+  <form method="post" action="/fight/corner" style="margin-top:12px">
+    <h3>{{ t("Tactic for round") }} {{ recap.next_round }}</h3>
+    <div class="actions">
+      {% for key, tc in TACTICS.items() %}
+      <label class="pickcard"><input type="radio" name="tactic" value="{{ key }}" {% if key==fs.tactic %}checked{% endif %}>
+        <span><b>{{ tc.label }}</b><br><span class="muted">{{ tc.desc }}</span></span></label>
+      {% endfor %}
+    </div>
+    <button class="btn big" type="submit" style="margin-top:10px">{{ t("Round") }} {{ recap.next_round }} &rarr;</button>
+  </form>
+  {% else %}
+  <form method="post" action="/fight/continue" style="margin-top:12px"><button class="btn big" type="submit">{{ t("Verdict") }}</button></form>
+  {% endif %}
+</div>
+{% elif not fs.over %}
+<div class="panel">
+  <h2>{{ t("Your move") }}</h2>
+  {% if combo %}
+  <div id="seqbox" class="seqbox">Combo: <span id="seq" class="muted">{{ t("Combo: pick strikes...") }}</span></div>
+  <div class="actions">
+    {% for a in combo %}
+    <button type="button" class="comboadd" data-a="{{ a }}">
+      <span class="an">{{ ACTIONS[a].label }}</span><span class="ad">{{ ACTIONS[a].desc }}</span>
+    </button>
+    {% endfor %}
+  </div>
+  <form method="post" action="/fight/action" id="comboform" style="margin:10px 0 18px">
+    <input type="hidden" name="combo" id="combofield">
+    <button class="btn big" type="submit" id="cbtn" disabled>{{ t("Throw the combo") }}</button>
+    <button class="btn ghost" type="button" onclick="clearSeq()">{{ t("Clear") }}</button>
+  </form>
+  {% endif %}
+  <h3>{{ t("Single actions") }}</h3>
+  <div class="actions">
+    {% for a in actions %}
+    <form method="post" action="/fight/action">
+      <input type="hidden" name="move" value="{{ a }}">
+      <button type="submit" style="width:100%"><span class="an">{{ ACTIONS[a].label }}</span><span class="ad">{{ ACTIONS[a].desc }}</span></button>
+    </form>
+    {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="panel"><a class="btn big" href="/fight/result">{{ t("See result") }}</a></div>
+{% endif %}
+
+<div class="panel">
+  <h2>{{ t("The fight") }}</h2>
+  <div class="log">
+    {% for ex in fs.log %}
+    <div class="ex"><span class="tag">R{{ ex.round }} &middot; {{ t("exchange") }} {{ ex.exch }}</span>
+      {% for l in ex.lines %}<span class="l {% if '>>>' in l or 'SUBMISSION' in l %}big{% endif %}">{{ l }}</span>{% endfor %}
+    </div>
+    {% else %}<div class="ex"><span class="l muted">And we're underway.</span></div>{% endfor %}
+  </div>
+</div>
+
+<script>
+const MAX={{ C.COMBO_MAX }};
+let seq=[];
+function draw(){document.getElementById('seq').textContent=seq.length?seq.map(x=>document.querySelector('.comboadd[data-a="'+x+'"] .an').textContent).join(' > '):'{{ t("Combo: pick strikes...") }}';
+  document.getElementById('combofield').value=seq.join(',');
+  document.getElementById('cbtn').disabled=!seq.length;}
+function clearSeq(){seq=[];draw();}
+document.querySelectorAll('.comboadd').forEach(b=>b.addEventListener('click',()=>{if(seq.length<MAX){seq.push(b.dataset.a);draw();}}));
+</script>
+{% endblock %}

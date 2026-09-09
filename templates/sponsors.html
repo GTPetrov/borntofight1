@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="panel">
+  <h2>{{ t("Sponsorship deals") }}</h2>
+  <p class="muted">{{ t("Cash") }}: <b>${{ f.money }}</b> &middot; {{ t("Popularity") }}: <b>{{ f.hype }}</b></p>
+  <p class="muted">{{ t("A sponsor pays a flat fee every fight; some take a cut of your purse. Bigger deals unlock as your popularity grows.") }}</p>
+  {% if current %}<p class="pill gold">{{ t("Current deal") }}: {{ current.name }}</p>{% endif %}
+
+  <div class="grid c2" style="margin-top:12px">
+    {% for s in SPONSORS %}
+    {% set locked = f.hype < s.min_hype %}
+    <div class="panel {{ 'me' if current and current.id == s.id }}" style="margin:0">
+      <h3 style="margin-top:0">{{ s.name }}{% if current and current.id == s.id %} <span class="pill gold">signed</span>{% endif %}</h3>
+      <p class="muted">{{ s.desc }}</p>
+      <div class="stat-line"><span>{{ t("per fight") }}</span><b>+${{ s.per_fight }}</b></div>
+      <div class="stat-line"><span>{{ t("purse cut") }}</span><b>{{ (s.cut*100)|round|int }}%</b></div>
+      <div class="stat-line"><span>{{ t("Popularity") }}</span><b>{{ s.min_hype }}+</b></div>
+      {% if locked %}
+        <span class="pill loss">{{ t("Locked - need popularity") }} {{ s.min_hype }}</span>
+      {% elif not (current and current.id == s.id) %}
+        <form method="post" action="/sponsors/sign" style="margin-top:8px">
+          <input type="hidden" name="sid" value="{{ s.id }}">
+          <button class="btn" type="submit">{{ t("Sign") }}</button>
+        </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% if current %}
+  <form method="post" action="/sponsors/sign" style="margin-top:12px">
+    <input type="hidden" name="sid" value="none">
+    <button class="btn ghost" type="submit">{{ t("Drop sponsor") }}</button>
+  </form>
+  {% endif %}
+  <p style="margin-top:14px"><a href="/hub">&larr; {{ t("Back to camp") }}</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block body %}
+
+<div class="result-banner {{ lr.outcome }}">
+  <h2>{% if lr.outcome=='win' %}{{ t("WIN") }}{% elif lr.outcome=='loss' %}{{ t("LOSS") }}{% else %}{{ t("DRAW") }}{% endif %}</h2>
+  <p>{{ lr.method }} &middot; {{ t("Round") }} {{ lr.round }}</p>
+  <p class="muted">{{ lr.text }}</p>
+  <p>vs {{ lr.opp_name }}{% if lr.opp_nick %} "{{ lr.opp_nick }}"{% endif %}</p>
+</div>
+
+{% if lr.achievements %}
+<div class="panel" style="border-color:var(--accent-2)">
+  <h2>{{ t("Achievement unlocked") }}</h2>
+  {% for a in lr.achievements %}<p><span class="pill gold">&#127894;</span> <b>{{ a }}</b></p>{% endfor %}
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>{{ t("Settlement") }}</h2>
+  <div class="stat-line"><span>{{ t("Fight purse") }}</span><b>${{ lr.purse }}</b></div>
+  <div class="stat-line"><span>{{ t("Record") }}</span><b>{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }}</b></div>
+  <div class="stat-line"><span>{{ t("Account") }}</span><b>${{ f.money }}</b></div>
+  <div class="stat-line"><span>{{ t("Brain health") }} / {{ t("Body health") }}</span><b>{{ f.brain }} / {{ f.body }}</b></div>
+  {% if lr.lines %}
+  <h3>{{ t("What changed") }}</h3>
+  <div class="log">{% for l in lr.lines %}<div class="ex"><span class="l">{{ l }}</span></div>{% endfor %}</div>
+  {% endif %}
+</div>
+
+{% if lr.news %}
+<div class="panel">
+  <h2>{{ t("Rest of the division") }}</h2>
+  <div class="log">{% for n in lr.news %}<div class="ex"><span class="l">{{ n }}</span></div>{% endfor %}</div>
+</div>
+{% endif %}
+
+<form method="post" action="/fight/result/ack">
+  <button class="btn big" type="submit">
+    {% if lr.forced_retire %}{{ t("End career") }}{% else %}{{ t("Continue") }}{% endif %}
+  </button>
+</form>
+{% endblock %}

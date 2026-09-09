@@ -1,0 +1,6 @@
+fastapi==0.141.1
+uvicorn[standard]
+jinja2
+python-multipart
+itsdangerous
+pytest
