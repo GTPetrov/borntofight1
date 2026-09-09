@@ -223,12 +223,12 @@ def _hair(style, hc, hc_l, hc_d):
                 f'<path d="M84,42 Q110,34 136,44 Q110,40 84,42 Z" fill="{hc_l}" opacity="0.45"/>')
     if style == "corn":
         rows = "".join(
-            f'<path d="M{x},38 Q{x + dx},64 {x + dx},96" stroke="{hc}" stroke-width="6" '
+            f'<path d="M{x},46 Q{x + dx},70 {x + dx},95" stroke="{hc}" stroke-width="5.5" '
             f'fill="none" stroke-linecap="round"/>'
-            f'<path d="M{x},38 Q{x + dx},64 {x + dx},96" stroke="{hc_l}" stroke-width="2" '
+            f'<path d="M{x},48 Q{x + dx},70 {x + dx},92" stroke="{hc_l}" stroke-width="1.6" '
             f'fill="none" stroke-linecap="round" opacity="0.5"/>'
-            for x, dx in ((80, -10), (93, -5), (110, 0), (127, 5), (140, 10)))
-        return (f'<path d="M62,88 Q110,40 158,88 Q150,52 110,48 Q70,52 62,88 Z" fill="{hc_d}"/>{rows}')
+            for x, dx in ((84, -7), (97, -3), (110, 0), (123, 3), (136, 7)))
+        return (f'<path d="M64,90 Q110,44 156,90 Q150,54 110,50 Q70,54 64,90 Z" fill="{hc_d}"/>{rows}')
     return ""
 
 
