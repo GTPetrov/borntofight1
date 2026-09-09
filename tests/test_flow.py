@@ -154,6 +154,22 @@ def test_ironman_ends_on_loss():
     assert any("Ironman" in ln for ln in ch["lines"])
 
 
+def test_retired_save_is_reaped():
+    c = _client()
+    _create(c)
+    assert len(G.list_saves()) == 1
+    r = c.post("/retire")
+    assert str(r.url).endswith("/career")
+    # the payoff screen still works while the player is looking at it
+    assert c.get("/career").status_code == 200
+    assert G.load() is not None
+    # ...but once they're back at the menu the retired career's cache is gone
+    c.get("/")
+    assert G.list_saves() == []
+    assert G.load() is None
+    assert c.get("/career").status_code == 200  # redirects home, no crash
+
+
 def test_visitor_isolation(monkeypatch):
     monkeypatch.setattr(G, "TEST_NS", None)   # use real per-cookie namespacing
     a, b = _client(), _client()

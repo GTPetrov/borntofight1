@@ -334,6 +334,7 @@ svg.flag { display: inline-block; vertical-align: -2px; border-radius: 2px; box-
   display: flex; gap: 12px; justify-content: center; flex: 0 0 auto; }
 .foot a { color: #5c6675; }
 .foot a:hover { color: var(--muted); }
+.foot .ver { opacity: .7; font-variant-numeric: tabular-nums; }
 body.has-board .foot { padding: 3px 12px; font-size: 10px; opacity: .55; }
 body.has-board .foot:hover { opacity: 1; }
 

@@ -27,6 +27,8 @@ from . import world as W
 BASE = Path(__file__).resolve().parent.parent
 _NS_RE = re.compile(r"^[a-f0-9]{8,64}$")
 
+APP_VERSION = "1.0"
+
 # Admin panel is off unless BT_ADMIN_KEY is set in the environment.
 ADMIN_KEY = os.environ.get("BT_ADMIN_KEY", "")
 # Google AdSense: set BT_ADSENSE_CLIENT to your "ca-pub-XXXXXXXXXXXXXXXX" to switch ads on.
@@ -106,6 +108,7 @@ def render(name, request, **ctx):
     ctx.setdefault("adsense", ADSENSE_CLIENT)
     ctx.setdefault("adsense_slot", ADSENSE_SLOT)
     ctx.setdefault("contact_email", CONTACT_EMAIL)
+    ctx.setdefault("version", APP_VERSION)
     return templates.TemplateResponse(request, name, ctx)
 
 
@@ -115,6 +118,15 @@ def redirect(url):
 
 def _load():
     return G.load()
+
+
+def _reap_retired() -> None:
+    """A retired fighter's payoff screens (/career, /legacy) are one-and-done.
+    Once the player is back at the menu or creating a new fighter, drop the
+    retired careers' save files so they don't pile up."""
+    for s in G.list_saves():
+        if s.get("retired"):
+            G.delete_slot(s["slot"])
 
 
 def _legacy():
@@ -167,6 +179,7 @@ def set_lang(code: str, request: Request):
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
+    _reap_retired()
     return render("index.html", request, saves=G.list_saves(), active=G.get_active(),
                   legacy=_legacy())
 
@@ -269,6 +282,7 @@ def slot_delete(slot: str = Form(...)):
 
 @app.get("/create", response_class=HTMLResponse)
 def create_form(request: Request):
+    _reap_retired()
     legacy = _legacy()
     pts = C.START_POINTS + (legacy["bonus_points"] if legacy else 0)
     seed = G.random_seed(pts)                     # every new career starts different
@@ -280,6 +294,7 @@ def create_form(request: Request):
 @app.post("/create")
 async def create_submit(request: Request):
     form = await request.form()
+    _reap_retired()
     legacy = _legacy()
     pts = C.START_POINTS + (legacy["bonus_points"] if legacy else 0)
 
