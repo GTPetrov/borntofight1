@@ -12,7 +12,7 @@ HEAD_POWER = {"cross", "headkick", "knee"}
 
 
 def init_fight(player_attrs, opp, max_rounds, for_title,
-               p_style="balanced", cut_stamina=0, p_stance="ortho") -> dict:
+               p_style="balanced", cut_stamina=0, p_stance="ortho", p_plan="normal") -> dict:
     def side(name, nickname, sta=100.0):
         return {"name": name, "nickname": nickname, "hp": 100.0, "stamina": sta,
                 "cards": 0, "rocked": 0, "cut": 0.0, "leg": 0.0,
@@ -28,7 +28,8 @@ def init_fight(player_attrs, opp, max_rounds, for_title,
         "p_stance": p_stance, "o_stance": opp.get("look", {}).get("stance", "ortho"),
         "p_pass": C.STYLES.get(p_style, {}).get("passive", {}),
         "o_pass": C.STYLES.get(o_style, {}).get("passive", {}),
-        "tactic": "normal",
+        "tactic": p_plan if p_plan in C.TACTICS else "normal",
+        "plan": p_plan if p_plan in C.TACTICS else "normal",
         "p": side("You", "", max(35.0, 100.0 + cut_stamina)),
         "o": side(opp["name"], opp.get("nickname", "")),
         "scorecard": [],
@@ -688,6 +689,61 @@ def corner_advice(state):
 def bars(state):
     return {"p_hp": int(state["p"]["hp"]), "o_hp": int(state["o"]["hp"]),
             "p_sta": int(state["p"]["stamina"]), "o_sta": int(state["o"]["stamina"])}
+
+
+def auto_action(state, rng=None):
+    """Heuristic player policy for the Simulate button. Follows the game plan."""
+    rng = rng or random
+    p, o = state["p"], state["o"]
+    S = allowed_actions(state)
+    pos = state["pos"]
+    plan = state["tactic"]
+
+    if pos == "ground" and state["top"] == "opp":
+        if p["hp"] < 30 and "defend_bottom" in S:
+            return ["defend_bottom"]
+        if "sub_bottom" in S and o["stamina"] < 30 and rng.random() < 0.3:
+            return ["sub_bottom"]
+        return ["standup_bottom"] if rng.random() < 0.62 else (["sweep"] if "sweep" in S else ["defend_bottom"])
+
+    if pos == "ground" and state["top"] == "player":
+        if "submit" in S and (o["hp"] < 55 or o["stamina"] < 35 or plan == "ground"):
+            if rng.random() < (0.5 if plan == "ground" else 0.35):
+                return ["submit"]
+        if "pass_guard" in S and not state["passed"] and rng.random() < 0.4:
+            return ["pass_guard"]
+        if plan in ("ground", "conserve") and rng.random() < 0.45:
+            return ["control"]
+        return ["gnp"]
+
+    if pos == "clinch":
+        if plan == "ground" and "trip" in S and rng.random() < 0.5:
+            return ["trip"]
+        if "knee" in S and rng.random() < 0.45:
+            return ["knee"]
+        if plan == "counter" and rng.random() < 0.3:
+            return ["defend_clinch"]
+        return ["dirtybox"]
+
+    # standing
+    if p["hp"] < 24 and "defend_stand" in S:
+        return ["defend_stand"]
+    if p["stamina"] < 22:
+        return ["jab"] if "jab" in S else ["defend_stand"]
+    if o["hp"] < 45 or o["rocked"]:
+        return ["cross", "cross"] if "cross" in S else ["jab", "cross"]
+    if plan == "ground" and "td_stand" in S and rng.random() < 0.6:
+        return ["td_stand"]
+    if plan == "conserve" and rng.random() < 0.35:
+        return ["defend_stand"] if o["stamina"] > 45 else ["jab", "body"]
+    if plan == "counter" and rng.random() < 0.4:
+        return rng.choice([["jab"], ["defend_stand"], ["lowkick"]])
+    opts = [["jab", "cross"], ["jab", "body"], ["lowkick"], ["midkick", "cross"], ["jab", "jab", "cross"]]
+    if plan == "pressure":
+        opts += [["cross", "body"], ["jab", "cross", "body"], ["midkick"]]
+    if state["p_style"] in ("wrestler", "grappler") and "td_stand" in S:
+        opts += [["td_stand"], ["clinch_up"]]
+    return rng.choice(opts)
 
 
 def win_prob(player_attrs, opp) -> int:

@@ -89,7 +89,13 @@
 </div>
 {% elif not fs.over %}
 <div class="panel">
-  <h2>{{ t("Your move") }}</h2>
+  <h2>{{ t("Your move") }} <span class="muted" style="font-size:11px;text-transform:none;letter-spacing:0">plan: {{ PLANS[fs.get('plan')].label if fs.get('plan') in PLANS else TACTICS[fs.tactic].label }}</span></h2>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+    <form method="post" action="/fight/sim"><input type="hidden" name="scope" value="round">
+      <button class="btn ghost" type="submit">&#9193; {{ t("Simulate round") }}</button></form>
+    <form method="post" action="/fight/sim"><input type="hidden" name="scope" value="end">
+      <button class="btn ghost" type="submit">&#9193;&#9193; {{ t("Simulate to the end") }}</button></form>
+  </div>
   {% if combo %}
   <div id="seqbox" class="seqbox">Combo: <span id="seq" class="muted">{{ t("Combo: pick strikes...") }}</span></div>
   <div class="actions">

@@ -197,3 +197,41 @@ table td .pill { padding: 1px 6px; }
 .namecell { display: flex; align-items: center; gap: 8px; }
 .who img.ava-md { margin: 0 auto 6px; display: block; }
 @media (max-width: 560px) { .look-controls { grid-template-columns: 1fr; } .ava-lg { width: 160px; height: 160px; } .result-banner h2 { font-size: 27px; } }
+
+/* --- phones --------------------------------------------------------- */
+@media (max-width: 640px) {
+  .wrap { padding: 14px 12px; }
+  header.top .wrap { padding: 10px 12px; }
+  header.top h1 { font-size: 17px; letter-spacing: 1px; }
+  header.top nav a { margin-left: 0; margin-right: 12px; }
+  .langsw { margin-left: 0; }
+
+  .panel { padding: 14px; border-radius: 10px; }
+  .panel h2 { font-size: 12px; }
+  .hero { padding: 28px 12px; }
+  .hero h2 { font-size: 26px; letter-spacing: 2px; }
+
+  .btn.big { width: 100%; text-align: center; padding: 13px 18px; }
+  .btn.big.ghost { width: 100%; }
+
+  /* fighter header + fight header stack */
+  .fight-head { grid-template-columns: 1fr; gap: 12px; }
+  .fight-head .vs { font-size: 16px; }
+  .panel .fight-head > div[style*="text-align:right"] { text-align: left !important; }
+  .panel .fight-head > div[style*="display:flex"] { flex-wrap: wrap; }
+
+  .attr-row { grid-template-columns: 92px 1fr 34px; gap: 8px; }
+
+  /* wide content scrolls instead of overflowing */
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  .roundtally { font-size: 12px; gap: 9px; }
+  .roundtally .rt-pts { margin-left: 0; }
+
+  .look-wrap { gap: 12px; }
+  .look-controls { grid-template-columns: 1fr; width: 100%; }
+  .ava-lg { width: 100%; max-width: 240px; height: auto; aspect-ratio: 1; }
+
+  .ladder { font-size: 10px; }
+  .log { font-size: 12px; max-height: 300px; }
+  .log .ex .l.big { font-size: 14px; letter-spacing: 1px; padding: 10px; }
+}

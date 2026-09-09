@@ -193,6 +193,7 @@ def new_state(name, nickname, age, weight, style, attrs, legacy: dict | None = N
                     "distance": 0, "biggest_upset": 0},
         "replays": [],
         "next_cut": "standard",
+        "next_plan": "normal",
         "retired": False,
         "legacy_of": legacy.get("mentor"),
         "history": [],
@@ -315,6 +316,11 @@ def train(state: dict, kind: str) -> dict:
 def set_cut(state: dict, cut: str) -> None:
     if cut in C.CUTS:
         state["fighter"]["next_cut"] = cut
+
+
+def set_plan(state: dict, plan: str) -> None:
+    if plan in C.PLANS:
+        state["fighter"]["next_plan"] = plan
 
 
 def fight_stakes(state: dict) -> dict:

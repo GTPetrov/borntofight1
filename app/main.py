@@ -50,7 +50,7 @@ templates.env.globals.update(
     C=C, ATTRS=C.ATTRS, ATTR_LABELS=C.ATTR_LABELS, ATTR_DESC=C.ATTR_DESC,
     TRAININGS=C.TRAININGS, ACTIONS=C.ACTIONS, WEIGHT_LABELS=C.WEIGHT_LABELS,
     STYLES=C.STYLES, TIERS=C.TIERS, STAFF=C.STAFF, CUTS=C.CUTS, TACTICS=C.TACTICS,
-    LOOKS=C.LOOKS, DEFAULT_LOOK=C.DEFAULT_LOOK, DIFFICULTY=C.DIFFICULTY,
+    LOOKS=C.LOOKS, DEFAULT_LOOK=C.DEFAULT_LOOK, DIFFICULTY=C.DIFFICULTY, PLANS=C.PLANS,
     GAME_MODES=C.GAME_MODES, SPONSORS=C.SPONSORS, ACHIEVEMENTS=C.ACHIEVEMENTS,
     overall=G.overall, rating=G.rating, career_progress=G.career_progress,
     wear=G.wear, avatar=AV.portrait, date_str=W.date_str, ava_url=AV.url,
@@ -236,6 +236,15 @@ def hub(request: Request):
                   tier=C.TIERS[f["tier"]], world=state["world"])
 
 
+@app.post("/plan")
+def set_plan(plan: str = Form(...)):
+    state = _load()
+    if state and "fight" not in state:
+        G.set_plan(state, plan)
+        G.save(state)
+    return redirect("/hub")
+
+
 @app.post("/train")
 def do_train(kind: str = Form(...)):
     state = _load()
@@ -351,7 +360,7 @@ def weighin_page(request: Request):
 
 
 @app.post("/weighin")
-def weighin_submit(cut: str = Form("standard")):
+def weighin_submit(cut: str = Form("standard"), go: str = Form("play")):
     state = _load()
     if not state or state["fighter"]["retired"]:
         return redirect("/hub")
@@ -364,13 +373,34 @@ def weighin_submit(cut: str = Form("standard")):
     catk = G.combat_attrs(f, cut)
     fs = F.init_fight(catk, stakes["opp"], stakes["rounds"], stakes["for_title"],
                       f["style"], C.CUTS[cut]["stamina"],
-                      f.get("look", {}).get("stance", "ortho"))
+                      f.get("look", {}).get("stance", "ortho"),
+                      f.get("next_plan", "normal"))
     fs["stakes"] = {"purse": stakes["purse"], "win_bonus": stakes["win_bonus"],
                     "for_title": stakes["for_title"], "org": stakes["org"]}
     state["fight"] = fs
     state.pop("camp", None)
+    if go == "sim":
+        _run_sim(fs, to_end=True)
     G.save(state)
-    return redirect("/fight")
+    return redirect("/fight/result" if fs["over"] and not fs.get("recap") else "/fight")
+
+
+def _run_sim(fs, to_end: bool):
+    guard = 0
+    while guard < 600:
+        guard += 1
+        if fs["over"]:
+            if to_end and fs.get("recap"):
+                fs["recap"] = None       # skip the "Verdict" click
+            return
+        if fs.get("recap"):
+            if to_end:
+                fs["recap"] = None
+                continue
+            return
+        lines = F.resolve(fs, F.auto_action(fs))
+        fs["log"].insert(0, {"round": fs["round"], "exch": fs["exchange"] + 1, "lines": lines, "sim": True})
+        F.end_exchange(fs)
 
 
 # --- Fight ------------------------------------------------------
@@ -406,6 +436,23 @@ def fight_action(combo: str = Form(""), move: str = Form("")):
     fs["log"].insert(0, {"round": fs["round"], "exch": fs["exchange"] + 1, "lines": lines})
     F.end_exchange(fs)
     G.save(state)
+    return redirect("/fight")
+
+
+@app.post("/fight/sim")
+def fight_sim(scope: str = Form("round")):
+    state = _load()
+    if not state or "fight" not in state:
+        return redirect("/hub")
+    fs = state["fight"]
+    if fs["over"]:
+        return redirect("/fight/result")
+    if fs.get("recap"):
+        return redirect("/fight")
+    _run_sim(fs, to_end=(scope == "end"))
+    G.save(state)
+    if fs["over"] and not fs.get("recap"):
+        return redirect("/fight/result")
     return redirect("/fight")
 
 

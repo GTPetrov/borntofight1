@@ -163,6 +163,15 @@ TACTICS = {
     "conserve": {"label": "Conserve gas", "desc": "Recover faster, but hit lighter."},
 }
 
+# Pre-fight game plan set on the hub - seeds the round-1 tactic. Keys match TACTICS.
+PLANS = {
+    "normal": {"label": "Balanced", "desc": "No bias - read the fight and adapt from the corner."},
+    "pressure": {"label": "Pressure & volume", "desc": "March them down and outwork them. Needs a big gas tank."},
+    "counter": {"label": "Counter-striker", "desc": "Patient, punish their mistakes. Slow starts, strong finishes."},
+    "ground": {"label": "Wrestle & grind", "desc": "Take it to the mat, hold top position, bank the rounds."},
+    "conserve": {"label": "Measured pace", "desc": "Pick your spots and keep fuel for the championship rounds."},
+}
+
 # --- Training ---------------------------------------------------------
 
 TRAININGS = {

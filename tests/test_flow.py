@@ -200,6 +200,40 @@ def test_rating_and_progress_scale():
     assert G.career_progress(f) >= 95
 
 
+def test_game_plan_and_simulate():
+    c = _client()
+    _create(c, style="wrestler")
+    r = c.post("/plan", data={"plan": "ground"})
+    assert G.load()["fighter"]["next_plan"] == "ground"
+    for _ in range(6):
+        c.post("/train", data={"kind": "wrestling"})
+    # simulate the whole fight straight from the weigh-in
+    r = c.post("/weighin", data={"go": "sim"})
+    assert "result-banner" in r.text, r.url          # ran the whole fight, landed on the result
+    c.post("/fight/result/ack")
+    assert G.load()["fighter"]["fights"] == 1
+
+    # play the next one but use Simulate round / Simulate to the end
+    for _ in range(6):
+        c.post("/train", data={"kind": "boxing"})
+    c.post("/weighin", data={"go": "play"})
+    r = c.get("/fight")
+    assert 'action="/fight/sim"' in r.text
+    r = c.post("/fight/sim", data={"scope": "round"})
+    assert "Corner after round" in r.text or "result-banner" in r.text
+    for _ in range(30):
+        if "result-banner" in r.text:
+            break
+        if 'action="/fight/corner"' in r.text:
+            r = c.post("/fight/corner", data={"tactic": "pressure"})
+        elif 'action="/fight/continue"' in r.text:
+            r = c.post("/fight/continue")
+        else:
+            r = c.post("/fight/sim", data={"scope": "end"})
+    assert "result-banner" in r.text
+    assert c.post("/fight/result/ack").status_code == 200
+
+
 def test_more_tiers_and_bigger_division():
     assert len(C.TIERS) == 6
     assert C.DIVISION_SIZE >= 16

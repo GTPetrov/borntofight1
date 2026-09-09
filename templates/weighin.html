@@ -13,9 +13,11 @@
   <p>Rivalry: <b>{{ stakes.rivalry.pw }}-{{ stakes.rivalry.ow }}</b> (heat {{ stakes.rivalry.heat }})</p>
   {% endif %}
 
+  <p>Game plan: <b>{{ PLANS[f.next_plan].label }}</b> <span class="muted">({{ PLANS[f.next_plan].desc }})</span></p>
   <p>Both fighters make weight. Time to go.</p>
-  <form method="post" action="/weighin">
-    <button class="btn big" type="submit">{{ t("To the cage") }} &rarr;</button>
+  <form method="post" action="/weighin" style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn big" type="submit" name="go" value="play">{{ t("To the cage") }} &rarr;</button>
+    <button class="btn big ghost" type="submit" name="go" value="sim">{{ t("Simulate fight") }}</button>
   </form>
   <p style="margin-top:10px"><a href="/hub">&larr; {{ t("Not yet - back to camp") }}</a></p>
 </div>

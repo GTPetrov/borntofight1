@@ -91,7 +91,15 @@
       <div class="stat-line"><span>{{ t("Rivalry") }}</span><b>{{ stakes.rivalry.pw }}-{{ stakes.rivalry.ow }} (heat {{ stakes.rivalry.heat }})</b></div>
       {% endif %}
       <div class="stat-line"><span>{{ t("Purse") }}</span><b>${{ stakes.purse }} (+${{ stakes.win_bonus }})</b></div>
-      <form method="get" action="/weighin" style="margin-top:14px"><button class="btn big" type="submit">{{ t("Go to weigh-in") }} &rarr;</button></form>
+
+      <form method="post" action="/plan" style="margin-top:12px">
+        <label class="muted" style="font-size:12px">{{ t("Game plan") }}</label><br>
+        <select name="plan" class="tin" onchange="this.form.submit()">
+          {% for key, pl in PLANS.items() %}<option value="{{ key }}" {% if key==f.next_plan %}selected{% endif %}>{{ pl.label }} — {{ pl.desc }}</option>{% endfor %}
+        </select>
+      </form>
+
+      <form method="get" action="/weighin" style="margin-top:12px"><button class="btn big" type="submit">{{ t("Go to weigh-in") }} &rarr;</button></form>
       <form method="post" action="/retire" style="margin-top:8px" onsubmit="return confirm('End the career?')">
         <button class="btn ghost" type="submit">{{ t("End career") }}</button>
       </form>
