@@ -16,10 +16,13 @@ from app.main import app
 
 @pytest.fixture(autouse=True)
 def _clean(tmp_path, monkeypatch):
+    from app import feedback as FB
     d = tmp_path / "saves"
     d.mkdir()
     monkeypatch.setattr(G, "SAVES_DIR", d)
     monkeypatch.setattr(G, "TEST_NS", "test")   # client + bare G.* share one namespace
+    monkeypatch.setattr(FB, "_STATS", None)
+    monkeypatch.setattr(FB, "_SEEN_TODAY", set())
     yield
 
 
@@ -263,7 +266,8 @@ def test_feedback_and_admin(monkeypatch):
     assert c.get("/admin").status_code == 404
     assert c.get("/admin/wrong").status_code == 404
     r = c.get("/admin/secret123")                 # sets cookie, redirects to /admin
-    assert r.status_code == 200 and "open feedback" in r.text
+    assert r.status_code == 200
+    assert "Site stats" in r.text and "requests (total)" in r.text
     assert "Please add southpaw" in r.text
     ts = items[0]["ts"]
     c.post(f"/admin/fb/{ts}")

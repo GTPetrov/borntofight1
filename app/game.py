@@ -609,9 +609,11 @@ def apply_result(state: dict, result: dict) -> dict:
     elif f["brain"] < C.BRAIN_SUSPEND and f["suspension_camps"] == 0:
         f["suspension_camps"] = 2
         ch["lines"].append("Medical suspension - a longer forced layoff before you return.")
-    if f["loss_streak"] >= 4 or (f["loss_streak"] >= 3 and f["fights"] >= 6):
-        ch["lines"].append("A losing skid - the promotion cuts you. Time to hang them up.")
+    if f["loss_streak"] >= 5 or (f["loss_streak"] >= 4 and f["age"] >= 33):
+        ch["lines"].append("A long losing skid - the promotion cuts you. Time to hang them up.")
         ch["forced_retire"] = True
+    elif f["loss_streak"] == 3:
+        ch["lines"].append("Three straight losses - you drop down the card and need to turn it around.")
     if f["age"] >= 40:
         ch["lines"].append("You're 40. The body says enough.")
         ch["forced_retire"] = True

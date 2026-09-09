@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections import Counter
 
@@ -10,6 +11,91 @@ from . import content as C
 from . import game as G
 
 KINDS = ("idea", "bug", "other")
+
+# --- lightweight site stats ----------------------------------------
+
+_STATS: dict | None = None
+_SEEN_TODAY: set = set()
+
+
+def _stats_file():
+    return G.SAVES_DIR / "_stats.json"
+
+
+def _load_stats() -> dict:
+    global _STATS
+    if _STATS is None:
+        try:
+            _STATS = json.loads(_stats_file().read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            _STATS = {}
+        _STATS.setdefault("requests", 0)
+        _STATS.setdefault("by_day", {})
+        _STATS.setdefault("dau", {})
+        _STATS.setdefault("by_path", {})
+        _STATS.setdefault("started", time.time())
+        _STATS.setdefault("sims", 0)
+        _STATS.setdefault("fight_actions", 0)
+        _STATS.setdefault("careers_created", 0)
+    return _STATS
+
+
+def _flush() -> None:
+    if _STATS is None:
+        return
+    try:
+        G.SAVES_DIR.mkdir(parents=True, exist_ok=True)
+        _stats_file().write_text(json.dumps(_STATS), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def bump(path: str, ns: str = "", event: str = "") -> None:
+    if path.startswith(("/static", "/avatar", "/admin")):
+        return
+    s = _load_stats()
+    s["requests"] += 1
+    day = time.strftime("%Y-%m-%d")
+    s["by_day"][day] = s["by_day"].get(day, 0) + 1
+    p = re.sub(r"/[0-9]+(\.[0-9]+)?", "/:n", re.sub(r"/[a-f0-9]{12,}", "/:id", path)) or "/"
+    s["by_path"][p] = s["by_path"].get(p, 0) + 1
+    key = f"{day}|{ns}"
+    if ns and key not in _SEEN_TODAY:
+        _SEEN_TODAY.add(key)
+        s["dau"][day] = s["dau"].get(day, 0) + 1
+    if event == "sim":
+        s["sims"] += 1
+    elif event == "fight_action":
+        s["fight_actions"] += 1
+    elif event == "career":
+        s["careers_created"] += 1
+    # trim history
+    if len(s["by_day"]) > 120:
+        for d in sorted(s["by_day"])[:-120]:
+            s["by_day"].pop(d, None); s["dau"].pop(d, None)
+    if s["requests"] % 20 == 0:
+        _flush()
+
+
+def site_stats() -> dict:
+    s = _load_stats()
+    days = sorted(s["by_day"])[-14:]
+    series = [{"day": d[5:], "reqs": s["by_day"].get(d, 0), "dau": s["dau"].get(d, 0)} for d in days]
+    peak = max((r["reqs"] for r in series), default=1) or 1
+    for r in series:
+        r["pct"] = round(100 * r["reqs"] / peak)
+    up = time.time() - s.get("started", time.time())
+    return {
+        "requests": s["requests"],
+        "today": s["by_day"].get(time.strftime("%Y-%m-%d"), 0),
+        "dau_today": s["dau"].get(time.strftime("%Y-%m-%d"), 0),
+        "sims": s["sims"], "fight_actions": s["fight_actions"],
+        "careers_created": s["careers_created"],
+        "uptime_days": round(up / 86400, 1),
+        "avg_per_day": round(s["requests"] / max(1, len(s["by_day"]))),
+        "top_paths": sorted(s["by_path"].items(), key=lambda kv: -kv[1])[:10],
+        "series": series,
+    }
 
 
 def _file():

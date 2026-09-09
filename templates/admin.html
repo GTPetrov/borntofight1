@@ -1,53 +1,79 @@
 {% extends "base.html" %}
 {% block title %}Admin - Born to Fight{% endblock %}
+{% block bodyclass %}has-board{% endblock %}
 {% block body %}
-<div class="panel">
-  <h2>Admin &mdash; overview <a href="/admin-logout" style="float:right;font-size:12px">log out</a></h2>
-  <div class="adm-grid">
-    <div class="adm-stat"><div class="n">{{ stats.players }}</div><div class="k">visitors (browsers)</div></div>
-    <div class="adm-stat"><div class="n">{{ stats.careers }}</div><div class="k">careers</div></div>
-    <div class="adm-stat"><div class="n">{{ stats.retired }}</div><div class="k">retired</div></div>
-    <div class="adm-stat"><div class="n">{{ stats.champions }}</div><div class="k">current champions</div></div>
-    <div class="adm-stat"><div class="n">{{ stats.total_fights }}</div><div class="k">fights played (all)</div></div>
-    <div class="adm-stat"><div class="n">{{ stats.feedback_open }}<span class="muted" style="font-size:14px"> / {{ stats.feedback_total }}</span></div><div class="k">open feedback</div></div>
-  </div>
-</div>
+<div class="board board-split" style="max-width:1120px">
 
-<div class="grid c2">
-  <div class="panel">
-    <h2>Breakdown</h2>
-    {% for title, rows in [("Tier reached", stats.tiers), ("Style", stats.styles), ("Weight", stats.weights), ("Mode", stats.modes), ("Difficulty", stats.difficulty)] %}
-    <h3>{{ title }}</h3>
-    {% for label, n in rows %}<div class="stat-line"><span>{{ label }}</span><b>{{ n }}</b></div>{% else %}<p class="muted">-</p>{% endfor %}
-    {% endfor %}
-  </div>
-  <div class="panel">
-    <h2>Top records</h2>
-    <div class="log">
-      {% for r in stats.top_records %}<div class="ex"><span class="l">{{ r }}</span></div>
-      {% else %}<div class="ex"><span class="l muted">No careers yet.</span></div>{% endfor %}
+  <div class="col">
+    <div class="panel">
+      <h2>Site stats <a href="/admin-logout" style="float:right;font-size:12px">log out</a></h2>
+      <div class="adm-grid">
+        <div class="adm-stat"><div class="n">{{ site.requests }}</div><div class="k">requests (total)</div></div>
+        <div class="adm-stat"><div class="n">{{ site.today }}</div><div class="k">requests today</div></div>
+        <div class="adm-stat"><div class="n">{{ site.dau_today }}</div><div class="k">active players today</div></div>
+        <div class="adm-stat"><div class="n">{{ stats.players }}</div><div class="k">visitors (all time)</div></div>
+        <div class="adm-stat"><div class="n">{{ site.avg_per_day }}</div><div class="k">avg requests / day</div></div>
+        <div class="adm-stat"><div class="n">{{ site.uptime_days }}d</div><div class="k">uptime</div></div>
+        <div class="adm-stat"><div class="n">{{ site.fight_actions }}</div><div class="k">fight actions taken</div></div>
+        <div class="adm-stat"><div class="n">{{ site.sims }}</div><div class="k">fights simulated</div></div>
+      </div>
+
+      <h3>Last 14 days (requests / active players)</h3>
+      <div class="chart">
+        {% for d in site.series %}
+        <div class="chart-col" title="{{ d.day }}: {{ d.reqs }} reqs, {{ d.dau }} players">
+          <div class="chart-bar" style="height:{{ d.pct }}%"></div>
+          <div class="chart-lbl">{{ d.day }}</div>
+        </div>
+        {% else %}<p class="muted">No traffic recorded yet.</p>{% endfor %}
+      </div>
+
+      <h3>Top pages</h3>
+      {% for p, n in site.top_paths %}<div class="stat-line"><span>{{ p }}</span><b>{{ n }}</b></div>{% endfor %}
+    </div>
+
+    <div class="panel">
+      <h2>Careers</h2>
+      <div class="adm-grid">
+        <div class="adm-stat"><div class="n">{{ stats.careers }}</div><div class="k">careers</div></div>
+        <div class="adm-stat"><div class="n">{{ stats.retired }}</div><div class="k">retired</div></div>
+        <div class="adm-stat"><div class="n">{{ stats.champions }}</div><div class="k">current champions</div></div>
+        <div class="adm-stat"><div class="n">{{ stats.total_fights }}</div><div class="k">total fights</div></div>
+      </div>
+      {% for title, rows in [("Tier reached", stats.tiers), ("Style", stats.styles), ("Weight", stats.weights), ("Mode", stats.modes), ("Difficulty", stats.difficulty)] %}
+      <h3>{{ title }}</h3>
+      {% for label, n in rows %}<div class="stat-line"><span>{{ label }}</span><b>{{ n }}</b></div>{% else %}<p class="muted">-</p>{% endfor %}
+      {% endfor %}
+      <h3>Top records</h3>
+      {% for r in stats.top_records %}<div style="font-size:13px;padding:2px 0">{{ r }}</div>
+      {% else %}<p class="muted">No careers yet.</p>{% endfor %}
     </div>
   </div>
-</div>
 
-<div class="panel">
-  <h2>Feedback ({{ items|length }})</h2>
-  {% for it in items %}
-  <div class="fb-item {{ 'done' if it.resolved }}">
-    <div class="meta">
-      <span class="k-{{ it.kind }}">{{ it.kind|upper }}</span>
-      <span>{{ it.ts | ts }}</span>
-      {% if it.page %}<span>page: {{ it.page }}</span>{% endif %}
-      {% if it.fighter %}<span>fighter: {{ it.fighter }}</span>{% endif %}
-      <span>id: {{ it.ns[:8] }}</span>
+  <div class="col">
+    <div class="panel grow">
+      <h2>Feedback &mdash; {{ stats.feedback_open }} open / {{ stats.feedback_total }} total</h2>
+      <div class="scroll">
+        {% for it in items %}
+        <div class="fb-item {{ 'done' if it.resolved }}">
+          <div class="meta">
+            <span class="k-{{ it.kind }}">{{ it.kind|upper }}</span>
+            <span>{{ it.ts | ts }}</span>
+            {% if it.page %}<span>page: {{ it.page }}</span>{% endif %}
+            {% if it.fighter %}<span>fighter: {{ it.fighter }}</span>{% endif %}
+            <span>id: {{ it.ns[:8] }}</span>
+          </div>
+          <div style="white-space:pre-wrap">{{ it.text }}</div>
+          <form method="post" action="/admin/fb/{{ it.ts }}" style="margin-top:6px">
+            <button class="btn ghost" type="submit">{{ 'Reopen' if it.resolved else 'Mark resolved' }}</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="muted">No feedback yet.</p>
+        {% endfor %}
+      </div>
     </div>
-    <div style="white-space:pre-wrap">{{ it.text }}</div>
-    <form method="post" action="/admin/fb/{{ it.ts }}" style="margin-top:6px">
-      <button class="btn ghost" type="submit">{{ 'Reopen' if it.resolved else 'Mark resolved' }}</button>
-    </form>
   </div>
-  {% else %}
-  <p class="muted">No feedback yet.</p>
-  {% endfor %}
+
 </div>
 {% endblock %}

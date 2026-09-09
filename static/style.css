@@ -264,6 +264,39 @@ table td .pill { padding: 1px 6px; }
   .board-fight { grid-template-rows: auto 1fr; }
   .board-fight > .fight-lower { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-height: 0; }
   .board-fight .fight-lower > .col { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .board-split { grid-template-columns: 1.2fr 1fr; max-width: 1040px; margin: 0 auto; }
+  .board-split .col { overflow-y: auto; }
+}
+
+/* --- training camp buttons ---------------------------------------- */
+.train-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+@media (max-width: 560px) { .train-grid { grid-template-columns: 1fr; } }
+.train-btn {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: linear-gradient(180deg, var(--panel-2), #1a212b);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  color: var(--text); transition: border-color .12s, transform .05s;
+}
+.train-btn:hover { border-color: var(--accent); }
+.train-btn:active { transform: translateY(1px); }
+.train-btn .tb-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.train-btn .tb-name { font-weight: 800; font-size: 14px; }
+.train-btn .tb-risk { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  background: #14331f; color: var(--green); border: 1px solid #1e6b45; }
+.train-btn .tb-risk.mid { background: #3a2f00; color: var(--accent-2); border-color: #6b5600; }
+.train-btn .tb-risk.hi { background: #3a0d0d; color: var(--red); border-color: #6b1616; }
+.train-btn .tb-desc { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+.train-btn .tb-attr { font-size: 11px; color: var(--accent-2); margin-top: 2px; letter-spacing: .3px; }
+
+/* --- tale of the tape -------------------------------------------- */
+.tott { width: 100%; }
+.tott td, .tott th { padding: 6px 8px; }
+.tott .mid { text-align: center; color: var(--muted); font-size: 12px; width: 40%; }
+.tott .a { text-align: right; font-weight: 700; }
+.tott .b { text-align: left; font-weight: 700; }
+.tott .a.hi { color: var(--green); }
+.tott .b.hi { color: var(--green); }
+.tott .name-row td { font-size: 15px; font-weight: 800; padding-bottom: 2px; }
 }
 
 /* --- feedback dock ------------------------------------------------- */
@@ -298,3 +331,7 @@ table td .pill { padding: 1px 6px; }
 .fb-item .meta { font-size: 11px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 5px; }
 .fb-item .k-bug { color: var(--red); font-weight: 700; }
 .fb-item .k-idea { color: var(--green); font-weight: 700; }
+.chart { display: flex; align-items: flex-end; gap: 4px; height: 90px; margin: 6px 0 4px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.chart-bar { width: 100%; min-height: 2px; background: linear-gradient(180deg, var(--accent-2), var(--accent)); border-radius: 3px 3px 0 0; }
+.chart-lbl { font-size: 8px; color: var(--muted); margin-top: 3px; transform: rotate(-45deg); white-space: nowrap; }

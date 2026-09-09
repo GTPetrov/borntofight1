@@ -1,24 +1,71 @@
 {% extends "base.html" %}
+{% block bodyclass %}has-board{% endblock %}
 {% block body %}
-<div class="panel">
-  <h2>{{ t("Weigh-in") }}</h2>
-  <p style="font-size:17px">{{ t("Fight") }}: <b>{{ stakes.opp.name }}</b>
-     {% if stakes.opp.nickname %}"{{ stakes.opp.nickname }}"{% endif %}
-     &middot; #{{ stakes.opp.rank }} &middot; {{ STYLES[stakes.opp.style].label }}
-     {% if stakes.for_title %}<span class="pill gold">{{ t("for the title") }}</span>{% endif %}</p>
-  <p class="muted">{{ stakes.org }} &middot; {{ stakes.date }} &middot; {{ t("Estimated chance") }} {{ stakes.prob }}%
-     &middot; {{ stakes.rounds }} rounds</p>
+<div class="board board-split">
 
-  {% if stakes.rivalry and stakes.rivalry.fights %}
-  <p>Rivalry: <b>{{ stakes.rivalry.pw }}-{{ stakes.rivalry.ow }}</b> (heat {{ stakes.rivalry.heat }})</p>
-  {% endif %}
+  <div class="col">
+    <div class="panel">
+      <h2>{{ t("Weigh-in") }} &mdash; {{ t("Tale of the tape") }}
+        {% if stakes.for_title %}<span class="pill gold">{{ t("for the title") }}</span>{% endif %}</h2>
 
-  <p>Game plan: <b>{{ PLANS[f.next_plan].label }}</b> <span class="muted">({{ PLANS[f.next_plan].desc }})</span></p>
-  <p>Both fighters make weight. Time to go.</p>
-  <form method="post" action="/weighin" style="display:flex;gap:10px;flex-wrap:wrap">
-    <button class="btn big" type="submit" name="go" value="play">{{ t("To the cage") }} &rarr;</button>
-    <button class="btn big ghost" type="submit" name="go" value="sim">{{ t("Simulate fight") }}</button>
-  </form>
-  <p style="margin-top:10px"><a href="/hub">&larr; {{ t("Not yet - back to camp") }}</a></p>
+      <div class="fight-head" style="margin-bottom:8px">
+        <div class="who">
+          <img class="ava-md" src="{{ ava_url(f.look, 90, wear(f)) }}" alt="">
+          <div class="nm">{{ f.name }}</div>
+          <div class="muted">{{ f.record.w }}-{{ f.record.l }}-{{ f.record.d }} &middot; {{ STYLES[f.style].label }}</div>
+        </div>
+        <div class="who"><div class="vs">VS</div><div class="muted">{{ stakes.prob }}% &nbsp;{{ t("Estimated chance") }}</div></div>
+        <div class="who">
+          <img class="ava-md" src="{{ ava_url(stakes.opp.get('look'), 90, stakes.opp.get('wear', 0)) }}" alt="">
+          <div class="nm">{{ stakes.opp.name }}</div>
+          <div class="muted">{{ stakes.opp.record.w }}-{{ stakes.opp.record.l }} &middot; {{ STYLES[stakes.opp.style].label }}</div>
+        </div>
+      </div>
+
+      <table class="tott">
+        <tr class="name-row"><td class="a">{{ f.name }}</td><td class="mid"></td><td class="b">{{ stakes.opp.name }}{% if stakes.opp.nickname %} "{{ stakes.opp.nickname }}"{% endif %}</td></tr>
+        <tr><td class="a {{ 'hi' if rating(f) > rating(stakes.opp) }}">{{ rating(f) }}</td><td class="mid">Rating</td><td class="b {{ 'hi' if rating(stakes.opp) > rating(f) }}">{{ rating(stakes.opp) }}</td></tr>
+        {% for k in ATTRS %}
+        <tr>
+          <td class="a {{ 'hi' if f.attrs[k] > stakes.opp.attrs[k] }}">{{ f.attrs[k] }}</td>
+          <td class="mid">{{ ATTR_LABELS[k] }}</td>
+          <td class="b {{ 'hi' if stakes.opp.attrs[k] > f.attrs[k] }}">{{ stakes.opp.attrs[k] }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+          <td class="a">{{ 'southpaw' if f.look.stance=='south' else 'orthodox' }}</td>
+          <td class="mid">{{ t("Stance") }}</td>
+          <td class="b">{{ 'southpaw' if stakes.opp.get('look',{}).get('stance')=='south' else 'orthodox' }}</td>
+        </tr>
+        <tr><td class="a">#{{ f.rank }}</td><td class="mid">Ranking</td><td class="b">#{{ stakes.opp.rank }}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="panel grow">
+      <h2>{{ t("Fight details") }}</h2>
+      <div class="scroll">
+        <div class="stat-line"><span>Promotion</span><b>{{ stakes.org }}</b></div>
+        <div class="stat-line"><span>{{ t("Date") }}</span><b>{{ stakes.date }}</b></div>
+        <div class="stat-line"><span>{{ t("Rounds") }}</span><b>{{ stakes.rounds }}{% if stakes.for_title %} (title){% endif %}</b></div>
+        <div class="stat-line"><span>{{ t("Purse") }}</span><b>${{ stakes.purse }} (+${{ stakes.win_bonus }})</b></div>
+        {% if stakes.rivalry and stakes.rivalry.fights %}
+        <div class="stat-line"><span>{{ t("Rivalry") }}</span><b>{{ stakes.rivalry.pw }}-{{ stakes.rivalry.ow }}</b></div>
+        <div class="stat-line"><span>{{ t("Rivalry heat") }}</span><b>{{ stakes.rivalry.heat }}</b></div>
+        {% endif %}
+        <div class="stat-line"><span>{{ t("Game plan") }}</span><b>{{ PLANS[f.next_plan].label }}</b></div>
+        <p class="muted" style="font-size:13px;margin-top:6px">{{ PLANS[f.next_plan].desc }}</p>
+        <p class="muted" style="font-size:13px">Both fighters make weight. Adjust your plan from the corner between rounds.</p>
+      </div>
+
+      <form method="post" action="/weighin" style="margin-top:12px;display:grid;gap:8px">
+        <button class="btn big" type="submit" name="go" value="play">{{ t("To the cage") }} &rarr;</button>
+        <button class="btn big ghost" type="submit" name="go" value="sim">{{ t("Simulate fight") }}</button>
+      </form>
+      <p style="margin-top:8px"><a href="/hub">&larr; {{ t("Not yet - back to camp") }}</a></p>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

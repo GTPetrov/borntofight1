@@ -62,13 +62,17 @@
       <div class="bar" style="margin-bottom:10px"><i style="width:{{ (100*(camp.total-camp.left)/camp.total)|round }}%"></i></div>
       {% if camp.left > 0 %}
       <div class="scroll">
-        <div class="actions">
+        <div class="train-grid">
           {% for key, tr in TRAININGS.items() %}
+          {% set r = injury_risk(f, key) %}
           <form method="post" action="/train"><input type="hidden" name="kind" value="{{ key }}">
-            <button type="submit" style="width:100%">
-              <span class="an">{{ tr.label }}
-                <span class="pill {{ 'loss' if injury_risk(f, key) >= 15 }}" style="float:right">injury {{ injury_risk(f, key) }}%</span></span>
-              <span class="ad">{{ tr.desc }} &middot; {{ ATTR_LABELS[tr.primary] }}/{{ ATTR_LABELS[tr.secondary] }}</span>
+            <button class="train-btn" type="submit">
+              <span class="tb-top">
+                <span class="tb-name">{{ tr.label }}</span>
+                <span class="tb-risk {{ 'hi' if r >= 15 else 'mid' if r >= 8 }}">injury {{ r }}%</span>
+              </span>
+              <span class="tb-attr">{{ ATTR_LABELS[tr.primary] }} &middot; {{ ATTR_LABELS[tr.secondary] }}</span>
+              <span class="tb-desc">{{ tr.desc }}</span>
             </button>
           </form>
           {% endfor %}
@@ -78,7 +82,13 @@
         {% for n in camp.notes %}<div style="font-size:13px;padding:3px 0">{{ n.kind }}{% if n.injury %} <span class="pill loss">{{ t("injury") }}</span>{% endif %}</div>{% endfor %}
         {% endif %}
       </div>
-      {% else %}<p><b>{{ t("Camp complete. Go to the weigh-in.") }}</b></p>{% endif %}
+      {% else %}
+      <div style="text-align:center;padding:24px 8px">
+        <p style="font-size:16px"><b>{{ t("Camp complete.") }}</b></p>
+        <p class="muted">{{ t("You're ready. Head to the weigh-in.") }}</p>
+        <form method="get" action="/weighin"><button class="btn big" type="submit">{{ t("Go to weigh-in") }} &rarr;</button></form>
+      </div>
+      {% endif %}
     </div>
   </div>
 

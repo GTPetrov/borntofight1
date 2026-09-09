@@ -53,6 +53,12 @@ async def _visitor_namespace(request: Request, call_next):
         pid = secrets.token_hex(16)
     G.set_namespace(pid)
     request.state.ns = pid
+    try:
+        ev = {"/fight/sim": "sim", "/fight/action": "fight_action",
+              "/create": "career"}.get(request.url.path, "") if request.method == "POST" else ""
+        FB.bump(request.url.path, ns=pid, event=ev)
+    except Exception:
+        pass
     response = await call_next(request)
     if fresh:
         response.set_cookie("bt_player", pid, max_age=60 * 60 * 24 * 730,
@@ -184,7 +190,8 @@ def admin_login(key: str):
 def admin_panel(request: Request):
     if not _is_admin(request):
         return Response("Not found", status_code=404)
-    return render("admin.html", request, stats=FB.world_stats(), items=FB.all_items())
+    return render("admin.html", request, stats=FB.world_stats(),
+                  site=FB.site_stats(), items=FB.all_items())
 
 
 @app.post("/admin/fb/{ts}")
