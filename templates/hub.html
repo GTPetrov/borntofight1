@@ -95,10 +95,6 @@
           </form>
           {% endfor %}
         </div>
-        {% if camp.notes %}
-        <h3>{{ t("Camp log") }}</h3>
-        {% for n in camp.notes %}<div style="font-size:13px;padding:3px 0">{{ n.kind }}{% if n.injury %} <span class="pill loss">{{ t("injury") }}</span>{% endif %}</div>{% endfor %}
-        {% endif %}
       </div>
       {% else %}
       <div style="text-align:center;padding:24px 8px">
