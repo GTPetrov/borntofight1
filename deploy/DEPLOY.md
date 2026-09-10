@@ -130,6 +130,26 @@ nano ~/duckdns/duckdns.sh          # set DOMAIN=YOURSUB and your token
 
 ---
 
+## Search visibility (SEO)
+
+Google won't "promote" a site for free and there's no magic tag, but you can make it
+easy to find and index:
+
+1. Set the public URL so canonical / Open Graph / sitemap links are absolute:
+   ```
+   sudo systemctl edit --full borntofight      # add under [Service]:
+   Environment=BT_SITE_URL=https://borntofight.com
+   ```
+   (skip it and the app falls back to the request's own origin - fine for DuckDNS.)
+2. The app already serves `/robots.txt`, `/sitemap.xml`, an `/og.svg` share card and
+   `<meta>` / JSON-LD tags on every page.
+3. Add the site to **Google Search Console** (<https://search.google.com/search-console>),
+   verify with the DNS TXT record, and submit `https://<your-domain>/sitemap.xml`.
+   Do the same for **Bing Webmaster Tools**.
+4. Get real inbound links - that's what actually moves the needle for a browser game:
+   post to r/WebGames, r/incremental_games and r/MMA, list it on itch.io and browser-game
+   directories, and a "Show HN" on Hacker News.
+
 ## Google AdSense
 
 1. Apply at <https://adsense.google.com> with `https://YOURSUB.duckdns.org` as the site.

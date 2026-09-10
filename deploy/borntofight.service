@@ -10,6 +10,9 @@ WorkingDirectory=/home/ubuntu/borntofight
 # Set your own secret. The admin panel then lives at
 #   https://YOURSUB.duckdns.org/admin/<that-secret>
 Environment=BT_ADMIN_KEY=change-me-to-a-long-random-string
+# Public URL of the site - used for canonical / Open Graph / sitemap links so
+# Google and link previews see one absolute address. Set once you have a domain.
+#Environment=BT_SITE_URL=https://borntofight.com
 # Google AdSense (optional): once your account is approved, put your publisher id here.
 # This turns on the ad loader + /ads.txt. Enable "Auto ads" in the AdSense console, or
 # also set BT_ADSENSE_SLOT to a display-unit id for the manual unit on the menu page.
