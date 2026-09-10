@@ -101,6 +101,9 @@ PL: dict[str, str] = {
     "Estimated chance": "Szacowana szansa",
     "Rivalry": "Rywalizacja",
     "Purse": "Gaża",
+    "Bonus pool": "Pula bonusowa",
+    "Paid for a highlight-reel finish, or for a war win or lose.":
+        "Wypłacana za efektowne wykończenie albo za wojnę - wygraną czy przegraną.",
     "Go to weigh-in": "Idź na ważenie",
     "End career": "Zakończ karierę",
     "title shot": "walka o pas",

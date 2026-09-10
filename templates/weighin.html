@@ -50,6 +50,10 @@
         <div class="stat-line"><span>{{ t("Date") }}</span><b>{{ stakes.date }}</b></div>
         <div class="stat-line"><span>{{ t("Rounds") }}</span><b>{{ stakes.rounds }}{% if stakes.for_title %} (title){% endif %}</b></div>
         <div class="stat-line"><span>{{ t("Purse") }}</span><b>${{ stakes.purse }} (+${{ stakes.win_bonus }})</b></div>
+        {% if stakes.perf %}
+        <div class="stat-line"><span>{{ t("Bonus pool") }}</span><b>${{ stakes.perf }}</b></div>
+        <p class="muted" style="font-size:12px;margin:2px 0 0">{{ t("Paid for a highlight-reel finish, or for a war win or lose.") }}</p>
+        {% endif %}
         {% if stakes.rivalry and stakes.rivalry.fights %}
         <div class="stat-line"><span>{{ t("Rivalry") }}</span><b>{{ stakes.rivalry.pw }}-{{ stakes.rivalry.ow }}</b></div>
         <div class="stat-line"><span>{{ t("Rivalry heat") }}</span><b>{{ stakes.rivalry.heat }}</b></div>

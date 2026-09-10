@@ -322,7 +322,7 @@ def train(state: dict, kind: str) -> dict:
         while f["xp"][attr] >= 1.0 and f["attrs"][attr] < 99:
             f["xp"][attr] -= 1.0
             f["attrs"][attr] += 1
-    risk = t.get("risk", 0.05) + (0.03 if f["age"] >= 34 else 0)
+    risk = t.get("risk", 0.05) + (0.02 if f["age"] >= 36 else 0) + (0.04 if f["age"] >= 40 else 0)
     risk *= max(0.4, 1 - f["staff"].get("nutrition", 0) * 0.2)
     if random.random() < risk:
         f["injury_weeks"] += 1
@@ -348,7 +348,7 @@ def set_plan(state: dict, plan: str) -> None:
 def injury_risk(f: dict, kind: str) -> int:
     """Effective injury chance (%) for a training session - matches train()."""
     t = C.TRAININGS[kind]
-    risk = t.get("risk", 0.05) + (0.03 if f["age"] >= 34 else 0)
+    risk = t.get("risk", 0.05) + (0.02 if f["age"] >= 36 else 0) + (0.04 if f["age"] >= 40 else 0)
     risk *= max(0.4, 1 - f["staff"].get("nutrition", 0) * 0.2)
     return round(risk * 100)
 
@@ -493,10 +493,21 @@ def apply_result(state: dict, result: dict) -> dict:
     purse = int(stakes["purse"] * diff["purse"])
     win_bonus = int(stakes["win_bonus"] * diff["purse"])
     money = purse + (win_bonus if outcome == "win" else 0)
+
+    # performance bonuses
+    perf = int(C.TIERS[f["tier"]]["perf"] * diff["purse"])
+    spectacular = (method == "KO"
+                   or (method in ("TKO", "TKO (cut)", "Submission") and result["round"] <= 2))
     if outcome == "win" and finish and win_bonus > 0:
         b = int(win_bonus * 0.35)
         money += b
-        ch["lines"].append(f"Performance bonus for the finish: +${b}.")
+        ch["lines"].append(f"Finish bonus: +${b}.")
+    if outcome == "win" and spectacular and perf > 0:
+        money += perf
+        ch["lines"].append(f"Performance of the Night: +${perf}.")
+    if result.get("war") and perf > 0:
+        money += perf
+        ch["lines"].append(f"Fight of the Night: +${perf}.")
     riv = f.get("rivalries", {}).get(opp["id"], {})
     if riv.get("heat", 0) >= 40 and purse > 0:
         gate = int(purse * 0.5)
@@ -588,12 +599,26 @@ def apply_result(state: dict, result: dict) -> dict:
     old_year = int(f["age"])
     f["age"] += C.AGE_PER_FIGHT
     if int(f["age"]) > old_year:
-        ch["lines"].append(f"Another year - you're now {int(f['age'])}.")
-        if f["age"] >= 34:
-            declined = random.sample(C.ATTRS, 2)
-            for a in declined:
-                f["attrs"][a] = max(20, f["attrs"][a] - random.randint(1, 3))
-            ch["lines"].append("Age takes a step off your " + " and ".join(C.ATTR_LABELS[a] for a in declined) + ".")
+        age = int(f["age"])
+        ch["lines"].append(f"Another year - you're now {age}.")
+        # physical decline sets in around 38; steeper past 40, and eventually
+        # even the technical skills erode. Experience softens the blow but
+        # can't stop it.
+        if age >= 38:
+            steep = age >= 40
+            hit = []
+            for a in ("power", "cardio", "chin"):
+                if random.random() < (1.0 if steep else 0.5):
+                    f["attrs"][a] = max(20, f["attrs"][a] - random.randint(2, 4) if steep
+                                        else f["attrs"][a] - random.randint(1, 2))
+                    hit.append(a)
+            if steep:
+                for a in random.sample(["striking", "wrestling", "bjj"], 2):
+                    f["attrs"][a] = max(20, f["attrs"][a] - random.randint(1, 2))
+                    hit.append(a)
+            if hit:
+                labels = list(dict.fromkeys(C.ATTR_LABELS[a] for a in hit))
+                ch["lines"].append("The years take a step off your " + " and ".join(labels) + ".")
 
     # post-fight injury
     inj = 0.12 + (0.18 if outcome == "loss" else 0) + (0.1 if finish and outcome == "loss" else 0)
@@ -631,13 +656,15 @@ def apply_result(state: dict, result: dict) -> dict:
     elif f["brain"] < C.BRAIN_SUSPEND and f["suspension_camps"] == 0:
         f["suspension_camps"] = 2
         ch["lines"].append("Medical suspension - a longer forced layoff before you return.")
-    if f["loss_streak"] >= 5 or (f["loss_streak"] >= 4 and f["age"] >= 33):
+    if f["loss_streak"] >= 5 or (f["loss_streak"] >= 4 and f["age"] >= 36):
         ch["lines"].append("A long losing skid - the promotion cuts you. Time to hang them up.")
         ch["forced_retire"] = True
     elif f["loss_streak"] == 3:
         ch["lines"].append("Three straight losses - you drop down the card and need to turn it around.")
-    if f["age"] >= 40:
-        ch["lines"].append("You're 40. The body says enough.")
+    if f["age"] >= 40 and not ch["forced_retire"]:
+        ch["lines"].append(f"You're {int(f['age'])}. The miles are showing - think about how much longer you want this.")
+    if f["age"] >= 42:
+        ch["lines"].append("The body has had enough. This was the last one.")
         ch["forced_retire"] = True
     if mode == "ironman" and outcome == "loss":
         ch["lines"].append("Ironman run: one loss ends the career.")

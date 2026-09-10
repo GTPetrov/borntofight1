@@ -171,6 +171,45 @@ def test_retired_save_is_reaped():
     assert c.get("/career").status_code == 200  # redirects home, no crash
 
 
+def test_performance_bonuses():
+    c = _client()
+    _create(c)
+    st = G.load()
+    st["fighter"]["tier"] = 3                       # Continental: perf = 15000
+    opp = W.pick_opponent(st["world"], st["fighter"])
+    stakes = {"purse": 10000, "win_bonus": 8000}
+    # spectacular KO win -> finish bonus + Performance of the Night
+    ch = G.apply_result(st, {"outcome": "win", "method": "KO", "round": 1,
+                             "opp": opp, "stakes": stakes})
+    assert any("Performance of the Night" in ln for ln in ch["lines"])
+    assert any("Finish bonus" in ln for ln in ch["lines"])
+    # a war (even in a decision loss) pays Fight of the Night
+    st2 = G.load(); st2["fighter"]["tier"] = 3
+    opp2 = W.pick_opponent(st2["world"], st2["fighter"])
+    ch2 = G.apply_result(st2, {"outcome": "loss", "method": "Unanimous decision", "round": 3,
+                               "opp": opp2, "stakes": stakes, "war": True})
+    assert any("Fight of the Night" in ln for ln in ch2["lines"])
+
+
+def test_aging_holds_until_38():
+    c = _client()
+    _create(c)
+
+    def one_fight(age):
+        st = G.load()
+        f = st["fighter"]
+        f["age"] = age
+        f["loss_streak"] = f["win_streak"] = 0
+        f["attrs"] = {k: 70 for k in C.ATTRS}
+        opp = W.pick_opponent(st["world"], f)
+        G.apply_result(st, {"outcome": "win", "method": "Unanimous decision", "round": 3,
+                            "opp": opp, "stakes": {"purse": 0, "win_bonus": 0}})
+        return sum(st["fighter"]["attrs"].values())
+
+    assert one_fight(33.95) == 420          # crossing 33->34 costs nothing now
+    assert one_fight(39.95) < 420           # crossing 39->40 sheds points
+
+
 def test_visitor_isolation(monkeypatch):
     monkeypatch.setattr(G, "TEST_NS", None)   # use real per-cookie namespacing
     a, b = _client(), _client()

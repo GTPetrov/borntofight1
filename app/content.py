@@ -48,19 +48,21 @@ WEIGHT_KO_MOD = {k: mod for k, _, mod in WEIGHT_CLASSES}
 # opp_base  - raw attribute floor of that tier's fighters
 # edge      - "sharpness": ring IQ, defence, conditioning and finishing polish
 #             that the fight engine layers on top of raw attributes (0 -> 1)
+# perf      - performance-bonus pool: paid for a spectacular finish ("Performance
+#             of the Night") or a war ("Fight of the Night", win or lose)
 TIERS = [
     {"name": "Amateur circuit", "short": "Amateur", "purse": 0, "win_bonus": 0,
-     "opp_base": 31, "edge": 0.00, "defenses_to_promote": 2},
+     "opp_base": 31, "edge": 0.00, "perf": 0, "defenses_to_promote": 2},
     {"name": "Regional promotion (Fight Night)", "short": "Regional", "purse": 1200,
-     "win_bonus": 1500, "opp_base": 40, "edge": 0.16, "defenses_to_promote": 2},
+     "win_bonus": 1500, "opp_base": 40, "edge": 0.16, "perf": 1000, "defenses_to_promote": 2},
     {"name": "National promotion (Kombat Zone)", "short": "National", "purse": 6000,
-     "win_bonus": 9000, "opp_base": 49, "edge": 0.34, "defenses_to_promote": 2},
+     "win_bonus": 9000, "opp_base": 49, "edge": 0.34, "perf": 5000, "defenses_to_promote": 2},
     {"name": "Continental league (Iron League)", "short": "Continental", "purse": 20000,
-     "win_bonus": 30000, "opp_base": 58, "edge": 0.55, "defenses_to_promote": 3},
+     "win_bonus": 30000, "opp_base": 58, "edge": 0.55, "perf": 15000, "defenses_to_promote": 3},
     {"name": "Global promotion (Titan FC)", "short": "Global", "purse": 65000,
-     "win_bonus": 110000, "opp_base": 67, "edge": 0.78, "defenses_to_promote": 3},
+     "win_bonus": 110000, "opp_base": 67, "edge": 0.78, "perf": 50000, "defenses_to_promote": 3},
     {"name": "Apex MMA - the pinnacle", "short": "Apex", "purse": 200000,
-     "win_bonus": 450000, "opp_base": 75, "edge": 1.00, "defenses_to_promote": 99},
+     "win_bonus": 450000, "opp_base": 75, "edge": 1.00, "perf": 200000, "defenses_to_promote": 99},
 ]
 TITLE_ROUNDS = 5
 MAX_TIER = len(TIERS) - 1

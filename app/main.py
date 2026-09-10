@@ -160,6 +160,7 @@ def stakes_for(state: dict) -> dict:
         "for_title": for_title,
         "purse": c.get("purse", 0),
         "win_bonus": c.get("bonus", 0),
+        "perf": C.TIERS[f["tier"]]["perf"],
         "opp": opp,
         "rivalry": f.get("rivalries", {}).get(opp["id"], {}),
         "date": W.date_str(state["world"]),
