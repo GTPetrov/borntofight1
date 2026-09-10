@@ -16,6 +16,7 @@ KINDS = ("idea", "bug", "other")
 
 _STATS: dict | None = None
 _SEEN_TODAY: set = set()
+_SEEN_HOUR: set = set()
 
 
 def _stats_file():
@@ -32,6 +33,8 @@ def _load_stats() -> dict:
         _STATS.setdefault("requests", 0)
         _STATS.setdefault("by_day", {})
         _STATS.setdefault("dau", {})
+        _STATS.setdefault("by_hour", {})     # "YYYY-MM-DD HH" -> request count
+        _STATS.setdefault("hau", {})         # "YYYY-MM-DD HH" -> unique visitors
         _STATS.setdefault("by_path", {})
         _STATS.setdefault("started", time.time())
         _STATS.setdefault("sims", 0)
@@ -51,18 +54,25 @@ def _flush() -> None:
 
 
 def bump(path: str, ns: str = "", event: str = "") -> None:
-    if path.startswith(("/static", "/avatar", "/admin")):
+    if path.startswith(("/static", "/avatar", "/admin")) or path in ("/favicon.ico", "/ads.txt", "/robots.txt"):
         return
     s = _load_stats()
     s["requests"] += 1
-    day = time.strftime("%Y-%m-%d")
+    now = time.localtime()
+    day = time.strftime("%Y-%m-%d", now)
+    hour = time.strftime("%Y-%m-%d %H", now)
     s["by_day"][day] = s["by_day"].get(day, 0) + 1
+    s["by_hour"][hour] = s["by_hour"].get(hour, 0) + 1
     p = re.sub(r"/[0-9]+(\.[0-9]+)?", "/:n", re.sub(r"/[a-f0-9]{12,}", "/:id", path)) or "/"
     s["by_path"][p] = s["by_path"].get(p, 0) + 1
     key = f"{day}|{ns}"
     if ns and key not in _SEEN_TODAY:
         _SEEN_TODAY.add(key)
         s["dau"][day] = s["dau"].get(day, 0) + 1
+    hkey = f"{hour}|{ns}"
+    if ns and hkey not in _SEEN_HOUR:
+        _SEEN_HOUR.add(hkey)
+        s["hau"][hour] = s["hau"].get(hour, 0) + 1
     if event == "sim":
         s["sims"] += 1
     elif event == "fight_action":
@@ -73,6 +83,11 @@ def bump(path: str, ns: str = "", event: str = "") -> None:
     if len(s["by_day"]) > 120:
         for d in sorted(s["by_day"])[:-120]:
             s["by_day"].pop(d, None); s["dau"].pop(d, None)
+    if len(s["by_hour"]) > 168:                     # keep ~1 week of hours
+        for h in sorted(s["by_hour"])[:-168]:
+            s["by_hour"].pop(h, None); s["hau"].pop(h, None)
+    if len(_SEEN_HOUR) > 4000:                      # drop stale per-hour dedupe keys
+        _SEEN_HOUR.difference_update({k for k in _SEEN_HOUR if not k.startswith(hour + "|")})
     if s["requests"] % 20 == 0:
         _flush()
 
@@ -85,16 +100,30 @@ def site_stats() -> dict:
     for r in series:
         r["pct"] = round(100 * r["reqs"] / peak)
     up = time.time() - s.get("started", time.time())
+    today = time.strftime("%Y-%m-%d")
+    cur_hour = int(time.strftime("%H"))
+    hours = []
+    for h in range(24):
+        hk = f"{today} {h:02d}"
+        hours.append({"h": h, "label": f"{h:02d}",
+                      "reqs": s["by_hour"].get(hk, 0),
+                      "visitors": s["hau"].get(hk, 0),
+                      "now": h == cur_hour})
+    hpeak = max((x["reqs"] for x in hours), default=1) or 1
+    for x in hours:
+        x["pct"] = round(100 * x["reqs"] / hpeak)
     return {
         "requests": s["requests"],
-        "today": s["by_day"].get(time.strftime("%Y-%m-%d"), 0),
-        "dau_today": s["dau"].get(time.strftime("%Y-%m-%d"), 0),
+        "today": s["by_day"].get(today, 0),
+        "dau_today": s["dau"].get(today, 0),
         "sims": s["sims"], "fight_actions": s["fight_actions"],
         "careers_created": s["careers_created"],
         "uptime_days": round(up / 86400, 1),
         "avg_per_day": round(s["requests"] / max(1, len(s["by_day"]))),
         "top_paths": sorted(s["by_path"].items(), key=lambda kv: -kv[1])[:10],
         "series": series,
+        "hours": hours,
+        "hours_visitors": sum(x["visitors"] for x in hours),
     }
 
 

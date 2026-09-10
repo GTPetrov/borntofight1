@@ -23,6 +23,7 @@ def _clean(tmp_path, monkeypatch):
     monkeypatch.setattr(G, "TEST_NS", "test")   # client + bare G.* share one namespace
     monkeypatch.setattr(FB, "_STATS", None)
     monkeypatch.setattr(FB, "_SEEN_TODAY", set())
+    monkeypatch.setattr(FB, "_SEEN_HOUR", set())
     yield
 
 
@@ -308,6 +309,11 @@ def test_feedback_and_admin(monkeypatch):
     r = c.get("/admin/secret123")                 # sets cookie, redirects to /admin
     assert r.status_code == 200
     assert "Site stats" in r.text and "requests (total)" in r.text
+    assert "Today by hour" in r.text
+    site = FB.site_stats()
+    assert len(site["hours"]) == 24
+    assert sum(h["reqs"] for h in site["hours"]) == site["today"]
+    assert any(h["visitors"] >= 1 for h in site["hours"])   # this test's own visits landed in some hour
     assert "Please add southpaw" in r.text
     ts = items[0]["ts"]
     c.post(f"/admin/fb/{ts}")

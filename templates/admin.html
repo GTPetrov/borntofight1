@@ -28,6 +28,17 @@
         {% else %}<p class="muted">No traffic recorded yet.</p>{% endfor %}
       </div>
 
+      <h3>Today by hour &mdash; {{ site.hours_visitors }} visitor-hours, {{ site.today }} requests</h3>
+      <div class="chart chart-hours">
+        {% for x in site.hours %}
+        <div class="chart-col {{ 'is-now' if x.now }}" title="{{ x.label }}:00 - {{ x.visitors }} visitor(s), {{ x.reqs }} requests">
+          <div class="chart-cap">{{ x.visitors or '' }}</div>
+          <div class="chart-bar {{ 'empty' if not x.reqs }}" style="height:{{ x.pct }}%"></div>
+          <div class="chart-lbl">{% if x.h % 3 == 0 %}{{ x.label }}{% endif %}</div>
+        </div>
+        {% endfor %}
+      </div>
+
       <h3>Top pages</h3>
       {% for p, n in site.top_paths %}<div class="stat-line"><span>{{ p }}</span><b>{{ n }}</b></div>{% endfor %}
     </div>

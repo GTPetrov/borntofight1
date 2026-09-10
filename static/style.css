@@ -390,3 +390,12 @@ body.has-board .foot:hover { opacity: 1; }
 .chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
 .chart-bar { width: 100%; min-height: 2px; background: linear-gradient(180deg, var(--accent-2), var(--accent)); border-radius: 3px 3px 0 0; }
 .chart-lbl { font-size: 8px; color: var(--muted); margin-top: 3px; transform: rotate(-45deg); white-space: nowrap; }
+
+/* hourly chart: 24 slim bars, upright labels, visitor count above the bar */
+.chart-hours { gap: 2px; height: 104px; align-items: flex-end; }
+.chart-hours .chart-col { justify-content: flex-end; }
+.chart-hours .chart-lbl { transform: none; font-size: 9px; }
+.chart-hours .chart-cap { font-size: 9px; color: var(--muted); line-height: 1; margin-bottom: 2px; min-height: 9px; }
+.chart-hours .chart-bar.empty { background: var(--line-soft); min-height: 2px; opacity: .5; }
+.chart-hours .chart-col.is-now .chart-bar { background: linear-gradient(180deg, #ffd166, var(--accent)); }
+.chart-hours .chart-col.is-now .chart-lbl { color: var(--text); font-weight: 700; }
