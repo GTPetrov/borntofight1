@@ -239,6 +239,7 @@ def test_seo_endpoints():
     c = _client()
     home = c.get("/").text
     assert '<meta name="description"' in home
+    assert 'name="google-site-verification"' in home
     assert '<link rel="canonical"' in home
     assert 'property="og:image"' in home
     assert 'application/ld+json' in home
