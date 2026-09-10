@@ -235,6 +235,22 @@ def test_static_pages_and_ads(monkeypatch):
     assert "googlesyndication.com" in c.get("/").text     # loader injected when configured
 
 
+def test_seo_endpoints():
+    c = _client()
+    home = c.get("/").text
+    assert '<meta name="description"' in home
+    assert '<link rel="canonical"' in home
+    assert 'property="og:image"' in home
+    assert 'application/ld+json' in home
+    r = c.get("/robots.txt")
+    assert r.status_code == 200 and "Sitemap:" in r.text and "Disallow: /hub" in r.text
+    s = c.get("/sitemap.xml")
+    assert s.status_code == 200 and "<urlset" in s.text and "/about" in s.text
+    for p in ("/favicon.svg", "/favicon.ico", "/icon.svg", "/og.svg"):
+        rr = c.get(p)
+        assert rr.status_code == 200 and rr.text.lstrip().startswith("<svg"), p
+
+
 def test_nation_flags_render():
     from app import flags as FL
     for code in C.NATION_CODES:

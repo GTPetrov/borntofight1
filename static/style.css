@@ -36,7 +36,9 @@ header.top {
 }
 header.top .wrap { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; flex-wrap: wrap; gap: 8px; }
 header.top h1 { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+header.top h1 a { display: inline-flex; align-items: center; gap: 9px; }
 header.top h1 span { color: var(--accent); }
+.brand-mark { display: block; flex: none; }
 header.top nav { display: flex; align-items: center; flex-wrap: wrap; }
 header.top nav a { color: var(--muted); margin-left: 15px; font-size: 12px; text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
 header.top nav a:hover { color: var(--text); }
@@ -153,8 +155,9 @@ tbody tr:hover, table tr:hover { background: rgba(255,255,255,.02); }
 .result-banner.finish h2 { text-shadow: 0 0 24px rgba(230,57,70,.6); }
 
 .hero { text-align: center; padding: 44px 18px; }
-.hero h2 { font-size: 36px; margin: 0 0 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
+.hero h1, .hero h2 { font-size: 36px; margin: 0 0 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; }
 .hero h2 span { color: var(--accent); }
+.hero .hero-sub { display: block; font-size: 15px; letter-spacing: 2px; color: var(--muted); margin-top: 6px; font-weight: 700; }
 .hero p { color: var(--muted); max-width: 620px; margin: 0 auto 22px; }
 
 .tin { width: 100%; padding: 9px; background: var(--bg); border: 1px solid var(--line); color: var(--text); border-radius: 7px; }
@@ -215,7 +218,7 @@ table td .pill { padding: 1px 6px; }
   .panel { padding: 14px; border-radius: 10px; }
   .panel h2 { font-size: 12px; }
   .hero { padding: 28px 12px; }
-  .hero h2 { font-size: 26px; letter-spacing: 2px; }
+  .hero h1, .hero h2 { font-size: 26px; letter-spacing: 2px; }
 
   .btn.big { width: 100%; text-align: center; padding: 13px 18px; }
   .btn.big.ghost { width: 100%; }

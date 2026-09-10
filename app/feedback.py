@@ -54,7 +54,9 @@ def _flush() -> None:
 
 
 def bump(path: str, ns: str = "", event: str = "") -> None:
-    if path.startswith(("/static", "/avatar", "/admin")) or path in ("/favicon.ico", "/ads.txt", "/robots.txt"):
+    if path.startswith(("/static", "/avatar", "/admin")) or path in (
+            "/favicon.ico", "/favicon.svg", "/icon.svg", "/og.svg",
+            "/ads.txt", "/robots.txt", "/sitemap.xml"):
         return
     s = _load_stats()
     s["requests"] += 1

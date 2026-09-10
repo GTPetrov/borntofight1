@@ -3,8 +3,42 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Born to Fight{% endblock %}</title>
+  <title>{% block title %}Born to Fight — free turn-based MMA career simulator{% endblock %}</title>
+  <meta name="description" content="{% block desc %}Build a fighter, run training camp and a coaching team, cut weight, and fight turn-based bouts combo by combo as you climb six MMA promotions from the amateur circuit to a world title. Free, no download, plays in your browser. English and Polish.{% endblock %}">
+  <link rel="canonical" href="{{ canonical }}">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <meta name="theme-color" content="#e63946">
+  <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Born to Fight">
+  <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+  <meta property="og:description" content="{{ self.desc() }}">
+  <meta property="og:url" content="{{ canonical }}">
+  <meta property="og:image" content="{{ site_url }}/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ self.og_title() }}">
+  <meta name="twitter:description" content="{{ self.desc() }}">
+  <meta name="twitter:image" content="{{ site_url }}/og.svg">
+
   <link rel="stylesheet" href="/static/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Born to Fight",
+    "url": "{{ site_url }}/",
+    "description": {{ self.desc() | tojson }},
+    "genre": ["Sports", "Simulation", "Management"],
+    "gamePlatform": "Web browser",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "inLanguage": ["en", "pl"],
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Organization", "name": "Born to Fight" }
+  }
+  </script>
   {% if adsense %}
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense }}" crossorigin="anonymous"></script>
   {% endif %}
@@ -12,7 +46,7 @@
 <body class="{% block bodyclass %}{% endblock %}">
 <header class="top">
   <div class="wrap">
-    <h1><a href="/" style="color:inherit">Born to <span>Fight</span></a></h1>
+    <h1><a href="/" style="color:inherit"><img class="brand-mark" src="/favicon.svg" alt="" width="30" height="30">Born to <span>Fight</span></a></h1>
     <nav>
       <a href="/hub">{{ t("Camp") }}</a>
       <a href="/division">{{ t("Division") }}</a>

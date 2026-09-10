@@ -22,12 +22,13 @@ from . import fight as F
 from . import flags as FL
 from . import game as G
 from . import i18n as I
+from . import logo as LOGO
 from . import world as W
 
 BASE = Path(__file__).resolve().parent.parent
 _NS_RE = re.compile(r"^[a-f0-9]{8,64}$")
 
-APP_VERSION = "1.0"
+APP_VERSION = "1.0.1"
 
 # Admin panel is off unless BT_ADMIN_KEY is set in the environment.
 ADMIN_KEY = os.environ.get("BT_ADMIN_KEY", "")
@@ -35,6 +36,9 @@ ADMIN_KEY = os.environ.get("BT_ADMIN_KEY", "")
 ADSENSE_CLIENT = os.environ.get("BT_ADSENSE_CLIENT", "").strip()
 ADSENSE_SLOT = os.environ.get("BT_ADSENSE_SLOT", "").strip()   # optional manual unit on the menu page
 CONTACT_EMAIL = os.environ.get("BT_CONTACT_EMAIL", "").strip()
+# Public base URL (e.g. https://borntofight.com) - used for canonical / Open Graph
+# / sitemap links. Falls back to the request's own origin when unset.
+SITE_URL = os.environ.get("BT_SITE_URL", "").strip().rstrip("/")
 _admin_signer = URLSafeTimedSerializer(ADMIN_KEY or "disabled", salt="bt-admin")
 ADMIN_MAX_AGE = 60 * 60 * 12
 
@@ -101,6 +105,10 @@ def _lang(request: Request) -> str:
     return I.normalize(request.cookies.get("lang"))
 
 
+def _site_url(request: Request) -> str:
+    return SITE_URL or f"{request.url.scheme}://{request.url.netloc}"
+
+
 def render(name, request, **ctx):
     lang = _lang(request)
     ctx["lang"] = lang
@@ -109,6 +117,9 @@ def render(name, request, **ctx):
     ctx.setdefault("adsense_slot", ADSENSE_SLOT)
     ctx.setdefault("contact_email", CONTACT_EMAIL)
     ctx.setdefault("version", APP_VERSION)
+    base = _site_url(request)
+    ctx.setdefault("site_url", base)
+    ctx.setdefault("canonical", base + request.url.path)
     return templates.TemplateResponse(request, name, ctx)
 
 
@@ -201,6 +212,79 @@ def privacy(request: Request):
 @app.get("/about", response_class=HTMLResponse)
 def about(request: Request):
     return render("about.html", request)
+
+
+# --- SEO: robots, sitemap, share image --------------------------------
+
+_PUBLIC_PATHS = ("/", "/about", "/privacy")
+
+
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots_txt(request: Request):
+    # only the public marketing pages are worth crawling; everything else is
+    # per-visitor game state
+    return (
+        "User-agent: *\n"
+        "Allow: /$\n"
+        "Allow: /about\n"
+        "Allow: /privacy\n"
+        "Disallow: /hub\n"
+        "Disallow: /fight\n"
+        "Disallow: /weighin\n"
+        "Disallow: /create\n"
+        "Disallow: /career\n"
+        "Disallow: /division\n"
+        "Disallow: /divisions\n"
+        "Disallow: /staff\n"
+        "Disallow: /sponsors\n"
+        "Disallow: /offers\n"
+        "Disallow: /admin\n"
+        "Disallow: /avatar.svg\n"
+        f"Sitemap: {_site_url(request)}/sitemap.xml\n"
+    )
+
+
+@app.get("/sitemap.xml")
+def sitemap_xml(request: Request):
+    base = _site_url(request)
+    urls = "".join(
+        f"<url><loc>{base}{p}</loc><changefreq>weekly</changefreq></url>"
+        for p in _PUBLIC_PATHS
+    )
+    body = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return Response(body, media_type="application/xml")
+
+
+_ICON_HEADERS = {"Cache-Control": "public, max-age=604800"}
+
+
+@app.get("/favicon.svg")
+@app.get("/favicon.ico")
+def favicon():
+    return Response(LOGO.mark(64), media_type="image/svg+xml", headers=_ICON_HEADERS)
+
+
+@app.get("/icon.svg")
+def touch_icon():
+    return Response(LOGO.mark(180, bg="#0c0f14"), media_type="image/svg+xml", headers=_ICON_HEADERS)
+
+
+@app.get("/og.svg")
+def og_image():
+    mark = LOGO.mark(360).replace("<svg ", '<svg x="800" y="135" ', 1)
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<defs><radialGradient id="g" cx="24%" cy="22%" r="105%">
+<stop offset="0" stop-color="#26313f"/><stop offset="1" stop-color="#0b0e13"/></radialGradient></defs>
+<rect width="1200" height="630" fill="url(#g)"/>
+<rect x="0" y="0" width="1200" height="10" fill="#e63946"/>
+{mark}
+<text x="92" y="238" font-family="Arial Black, Arial, sans-serif" font-size="86" font-weight="900" fill="#f4f1ec">BORN TO</text>
+<text x="90" y="342" font-family="Arial Black, Arial, sans-serif" font-size="128" font-weight="900" fill="#e63946">FIGHT</text>
+<text x="96" y="412" font-family="Arial, sans-serif" font-size="37" fill="#aeb7c2">Turn-based MMA career simulator</text>
+<text x="96" y="466" font-family="Arial, sans-serif" font-size="27" fill="#8b95a3">Build a fighter &#183; run camp &#183; climb six promotions to a world title</text>
+<text x="96" y="566" font-family="Arial, sans-serif" font-size="25" fill="#5c6675">Free &#183; plays in your browser &#183; English &amp; Polski</text>
+</svg>"""
+    return Response(svg, media_type="image/svg+xml", headers=_ICON_HEADERS)
 
 
 # --- Feedback + admin -------------------------------------------------
