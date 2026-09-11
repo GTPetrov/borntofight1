@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}About Born to Fight — how the MMA career sim works{% endblock %}
-{% block desc %}How Born to Fight works: six MMA promotions, a living 16-fighter division, turn-based fights scored on real criteria, training camps, weight cuts, long-term brain health, rivalries and a Hall of Fame. Free browser game.{% endblock %}
+{% block title %}About Born to Fight — Free MMA Simulator & Career Game{% endblock %}
+{% block desc %}What Born to Fight is: a free MMA simulator and career game - six promotions, a living 16-fighter division, turn-based fights scored on real criteria, training camps, weight cuts, long-term brain health, rivalries and a Hall of Fame. Plays in your browser.{% endblock %}
 {% block body %}
 <div class="panel" style="max-width:760px;margin:0 auto">
   <h2>About Born to Fight</h2>
-  <p>Born to Fight is a free turn-based MMA career simulator you play in the browser.
-  You build a fighter - attributes, style, nationality, look - then run training camps,
-  hire a coaching team, sign sponsors, and fight your way from the amateur circuit up
-  through six promotions to a world title.</p>
+  <p>Born to Fight is a free MMA simulator and career game - a turn-based fighting sim
+  you play in the browser, no download or account required. You build a fighter -
+  attributes, style, nationality, look - then run training camps, hire a coaching team,
+  sign sponsors, and fight your way from the amateur circuit up through six promotions
+  to a world title.</p>
 
   <p>Fights play out exchange by exchange: pick strikes and combinations, shoot takedowns,
   work the ground, and adjust your game plan from the corner between rounds. The judges
@@ -25,10 +26,53 @@
     <li>English and Polish</li>
   </ul>
 
+  <h3>Frequently asked questions</h3>
+  <div id="faq">
+    <p><b>Is Born to Fight a real MMA simulator?</b><br>
+    Yes - it's a turn-based MMA simulator and career game. You don't just pick a winner;
+    you call strikes, takedowns and ground exchanges round by round while a judging
+    system scores the fight on real criteria.</p>
+
+    <p><b>Is it free to play?</b><br>
+    Yes, completely free, with no account and nothing to install. It runs in any modern
+    browser, desktop or mobile.</p>
+
+    <p><b>Is this more like an MMA manager game or a fighting career sim?</b><br>
+    Both - you manage the business side (camp, coaching staff, sponsors, weight cuts,
+    contracts) and you personally fight every round of every bout, so it plays like a
+    career sim with manager-game depth underneath.</p>
+
+    <p><b>Can I play as a boxer, wrestler or grappler, not just a striker?</b><br>
+    Yes - pick a fighting style (striker, brawler, wrestler, grappler or well-rounded)
+    when you create your fighter; each has its own passive bonuses and AI tendencies for
+    opponents who use it.</p>
+
+    <p><b>Do I need to create an account?</b><br>
+    No. A private, anonymous save is tied to your browser automatically.</p>
+  </div>
+
   <h3>Feedback</h3>
   <p>There's a feedback button on every page - ideas and bug reports are welcome.
   {% if contact_email %}You can also reach out at <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.{% endif %}</p>
 
   <p style="margin-top:16px"><a href="/">&larr; Back to the game</a> &middot; <a href="/privacy">Privacy policy</a></p>
 </div>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Is Born to Fight a real MMA simulator?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes - it's a turn-based MMA simulator and career game. You call strikes, takedowns and ground exchanges round by round while a judging system scores the fight on real criteria."}},
+    {"@type": "Question", "name": "Is it free to play?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes, completely free, with no account and nothing to install. It runs in any modern browser, desktop or mobile."}},
+    {"@type": "Question", "name": "Is this more like an MMA manager game or a fighting career sim?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Both - you manage camp, coaching staff, sponsors, weight cuts and contracts, and you personally fight every round of every bout."}},
+    {"@type": "Question", "name": "Can I play as a boxer, wrestler or grappler, not just a striker?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Yes - pick a fighting style (striker, brawler, wrestler, grappler or well-rounded) with its own passive bonuses."}},
+    {"@type": "Question", "name": "Do I need to create an account?",
+     "acceptedAnswer": {"@type": "Answer", "text": "No. A private, anonymous save is tied to your browser automatically."}}
+  ]
+}
+</script>
 {% endblock %}

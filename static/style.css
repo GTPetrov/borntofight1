@@ -56,6 +56,8 @@ header.top nav a:hover { color: var(--text); }
 }
 .panel h2::before { content: ""; width: 3px; height: 14px; background: var(--accent); border-radius: 2px; }
 .panel h3 { margin: 16px 0 8px; font-size: 12px; letter-spacing: .8px; color: var(--muted); text-transform: uppercase; }
+#faq p { margin: 0 0 16px; line-height: 1.5; }
+#faq p b { color: var(--text); }
 
 .grid { display: grid; gap: 14px; }
 .grid.c2 { grid-template-columns: 1fr 1fr; }

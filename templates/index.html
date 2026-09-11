@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% block title %}Born to Fight — free turn-based MMA career simulator{% endblock %}
 {% block body %}
 
 {% if legacy %}
@@ -13,7 +12,7 @@
 {% endif %}
 
 <div class="panel hero">
-  <h1>Born to Fight <span class="hero-sub">— turn-based MMA career simulator</span></h1>
+  <h1>Born to Fight <span class="hero-sub">— a free MMA simulator you play in your browser</span></h1>
   <p>{{ t("A career simulator: build a fighter, run camp and a coaching team, cut weight, fight turn-based - combo by combo - and climb a living division of rivals to the top.") }}</p>
   {% if not legacy %}<a class="btn big" href="/create">{{ t("New career") }}</a>{% endif %}
 </div>
