@@ -117,6 +117,7 @@
     <div class="panel grow">
       <h2>{{ t("Next fight") }} {% if stakes.for_title %}<span class="pill gold">{{ t("for the title") }}</span>{% endif %}</h2>
       <div class="scroll">
+        {% if stakes.event_no %}<p class="muted" style="font-size:12px;margin:0">{{ stakes.org }} {{ stakes.event_no }}</p>{% endif %}
         <p style="font-size:17px;margin:.1em 0">{{ flag(stakes.opp) }} <a href="/fighter/{{ stakes.opp.id }}"><b>{{ stakes.opp.name }}</b></a>{% if stakes.opp.nickname %} "{{ stakes.opp.nickname }}"{% endif %}</p>
         <div class="stat-line"><span>{{ t("Record / rank") }}</span><b>{{ stakes.opp.record.w }}-{{ stakes.opp.record.l }} &middot; #{{ stakes.opp.rank }}</b></div>
         <div class="stat-line"><span>{{ t("Style") }} / rating</span><b>{{ STYLES[stakes.opp.style].label }} &middot; {{ rating(stakes.opp) }}</b></div>

@@ -28,7 +28,7 @@ from . import world as W
 BASE = Path(__file__).resolve().parent.parent
 _NS_RE = re.compile(r"^[a-f0-9]{8,64}$")
 
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.1"
 
 # Admin panel is off unless BT_ADMIN_KEY is set in the environment.
 ADMIN_KEY = os.environ.get("BT_ADMIN_KEY", "")
@@ -156,6 +156,7 @@ def upcoming_opp(state: dict) -> dict:
     if not opp or opp.get("retired") or opp.get("is_player"):
         opp = W.pick_opponent(world, state["fighter"])
         state["next_opp_id"] = opp["id"]
+        state["next_event_no"] = W.next_event_no(world, state["fighter"]["tier"])
         G.save(state)
     return opp
 
@@ -167,6 +168,7 @@ def stakes_for(state: dict) -> dict:
     opp = upcoming_opp(state)
     return {
         "org": c.get("org", C.TIERS[f["tier"]]["name"]),
+        "event_no": state.get("next_event_no"),
         "rounds": C.TITLE_ROUNDS if for_title else 3,
         "for_title": for_title,
         "purse": c.get("purse", 0),
@@ -570,6 +572,7 @@ def offers_sign(offer: str = Form(...)):
     o = W.sign(state, offer)
     if o:
         state.pop("next_opp_id", None)
+        state.pop("next_event_no", None)
         state["fighter"]["log"].insert(0, f'Signed a contract: {o["org"]} ({o["fights"]} fights).')
         G.save(state)
     return redirect("/hub")
@@ -602,7 +605,8 @@ def weighin_submit(cut: str = Form("standard"), go: str = Form("play")):
                       f.get("look", {}).get("stance", "ortho"),
                       f.get("next_plan", "normal"))
     fs["stakes"] = {"purse": stakes["purse"], "win_bonus": stakes["win_bonus"],
-                    "for_title": stakes["for_title"], "org": stakes["org"]}
+                    "for_title": stakes["for_title"], "org": stakes["org"],
+                    "event_no": stakes["event_no"]}
     state["fight"] = fs
     state.pop("camp", None)
     if go == "sim":
@@ -723,6 +727,7 @@ def fight_result(request: Request):
         result["log"] = [ln for ex in fs.get("log", []) for ln in ex["lines"]]
         ch = G.apply_result(state, result)
         f = state["fighter"]
+        stakes = result.get("stakes") or {}
         state["last_result"] = {
             "outcome": result["outcome"], "method": result["method"], "round": result["round"],
             "text": result["text"], "opp_name": result["opp"]["name"],
@@ -730,8 +735,10 @@ def fight_result(request: Request):
             "lines": ch["lines"], "news": ch["news"], "purse": ch["purse"],
             "promoted": ch.get("promoted"), "forced_retire": ch["forced_retire"],
             "achievements": ch.get("achievements", []),
+            "org": stakes.get("org"), "event_no": stakes.get("event_no"),
         }
         state.pop("next_opp_id", None)
+        state.pop("next_event_no", None)
         if not f["retired"]:
             G.start_camp(state)
         G.save(state)

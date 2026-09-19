@@ -11,6 +11,7 @@
       <div class="pill">{{ t("cards") }}: {{ fs.p.cards }}</div>
     </div>
     <div class="who"><div class="vs">VS</div>
+      {% if fs.stakes and fs.stakes.org %}<div class="muted" style="font-size:11px">{{ fs.stakes.org }}{% if fs.stakes.event_no %} {{ fs.stakes.event_no }}{% endif %}</div>{% endif %}
       <div class="muted">{{ t("Round") }} {{ fs.round }}/{{ fs.max_rounds }}{% if not fs.over %} &middot; {{ t("exchange") }} {{ fs.exchange + 1 }}/5{% endif %}</div>
       <div class="pill">{{ TACTICS[fs.tactic].label }}</div>
       {% if fs.p_stance != fs.o_stance %}<div class="pill">ortho vs southpaw</div>{% endif %}

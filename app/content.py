@@ -336,7 +336,8 @@ COMBO_MAX = 3
 
 DIVISION_SIZE = 16
 MONTHS_BETWEEN_FIGHTS = 2      # calendar step per fight (keeps months an integer)
-AGE_PER_FIGHT = 0.12          # years added per fight (~8 fights/year) - slower than the calendar
+AGE_PER_FIGHT = 0.27          # years added per fight (~3.7 fights/year) - a realistic pro pace,
+                               # so a 40+-fight record actually takes into your mid-30s to rack up
 NEWCOMER_AGE = (19, 26)
 
 # --- Nationalities & name pools -------------------------------------

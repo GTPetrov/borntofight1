@@ -414,3 +414,22 @@ def sync_player(state: dict) -> None:
 
 def date_str(world: dict) -> str:
     return f"{MONTHS[world.get('month', 1) - 1]} {2020 + world.get('year', 1)}"
+
+
+# a numbered-card feel (like real promotions' event numbering) - each org has
+# clearly been running for years before you got there, so your first Global
+# card isn't "#1". Amateur shows aren't branded/numbered.
+EVENT_BASE_RANGE = {1: (18, 55), 2: (60, 140), 3: (120, 260), 4: (180, 340), 5: (240, 480)}
+
+
+def next_event_no(world: dict, tier: int) -> int | None:
+    if tier <= 0:
+        return None
+    base = world.setdefault("event_base", {})
+    key = str(tier)
+    if key not in base:
+        lo, hi = EVENT_BASE_RANGE.get(tier, (30, 100))
+        base[key] = random.randint(lo, hi)
+    else:
+        base[key] += 1
+    return base[key]

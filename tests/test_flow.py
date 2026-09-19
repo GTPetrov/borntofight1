@@ -334,6 +334,32 @@ def test_game_plan_and_simulate():
     assert c.post("/fight/result/ack").status_code == 200
 
 
+def test_event_numbering():
+    world = {"seq": 0}
+    assert W.next_event_no(world, 0) is None          # amateur cards aren't numbered/branded
+    n1 = W.next_event_no(world, 2)
+    n2 = W.next_event_no(world, 2)
+    assert n2 == n1 + 1                               # numbered card increments per booked fight
+    n3 = W.next_event_no(world, 4)
+    assert n3 != n1                                   # separate running count per promotion
+
+    import app.main as M
+    c = _client()
+    _create(c)
+    c.get("/hub")
+    st = G.load()
+    assert st.get("next_event_no") is None            # freshly-created amateur career: no number
+
+    st["fighter"]["tier"] = 3                         # Continental
+    st["fighter"]["contract"]["org"] = C.TIERS[3]["name"]
+    st.pop("next_opp_id", None); st.pop("next_event_no", None)
+    G.save(st)
+    r = c.get("/weighin")
+    st = G.load()
+    assert isinstance(st.get("next_event_no"), int)
+    assert f'{C.TIERS[3]["name"]} {st["next_event_no"]}' in r.text
+
+
 def test_more_tiers_and_bigger_division():
     assert len(C.TIERS) == 6
     assert C.DIVISION_SIZE >= 16
