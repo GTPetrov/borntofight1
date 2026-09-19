@@ -360,6 +360,33 @@ def test_event_numbering():
     assert f'{C.TIERS[3]["name"]} {st["next_event_no"]}' in r.text
 
 
+def test_can_step_down_a_tier():
+    st = G.new_state("Faller", "", 24, "light", "balanced", G.default_attrs())
+    f = st["fighter"]
+    f["tier"] = 2                                  # National
+    f["contract"] = {"org": C.TIERS[2]["name"], "tier": 2, "purse": 0, "bonus": 0,
+                     "fights_left": 1, "hype_mult": 1.0}
+    f["champion"] = False
+    f["rank"] = C.DIVISION_SIZE                    # scuffling near the bottom
+    f["win_streak"] = 0
+    W.maybe_offer(st)
+    assert st.get("offers"), "a contract-ending fighter should always get offers"
+    down = next((o for o in st["offers"] if o["id"] == "down"), None)
+    assert down and down["tier"] == 1               # struggling + not champ -> a drop-down option
+    W.sign(st, "down")
+    assert f["tier"] == 1 and f["contract"]["tier"] == 1
+    assert 1 <= f["rank"] <= C.DIVISION_SIZE
+    assert not f["champion"] and not f["title_shot"]
+
+    # amateurs have nowhere lower to fall
+    st2 = G.new_state("Rookie", "", 22, "light", "balanced", G.default_attrs())
+    f2 = st2["fighter"]
+    f2["contract"]["fights_left"] = 1
+    f2["win_streak"] = 0
+    W.maybe_offer(st2)
+    assert "down" not in {o["id"] for o in st2["offers"]}
+
+
 def test_more_tiers_and_bigger_division():
     assert len(C.TIERS) == 6
     assert C.DIVISION_SIZE >= 16

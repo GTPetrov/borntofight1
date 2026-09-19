@@ -361,6 +361,14 @@ def maybe_offer(state: dict) -> None:
                        "purse": max(300, int(cur["purse"] * 0.9)), "bonus": int(cur["win_bonus"]),
                        "fights": 3, "hype_mult": 0.95,
                        "desc": "Short prove-it deal. String some wins together and better offers come."})
+        if f["tier"] > 0:
+            lower = C.TIERS[f["tier"] - 1]
+            offers.append({"id": "down", "org": lower["name"], "tier": f["tier"] - 1,
+                           "purse": lower["purse"], "bonus": lower["win_bonus"], "fights": 4,
+                           "hype_mult": 0.85,
+                           "desc": "Drop down a level. Smaller stage, easier fights, a name that "
+                                   "still means something there - rebuild your record and climb "
+                                   "back up when you're ready."})
     state["offers"] = offers
 
 
@@ -371,17 +379,20 @@ def sign(state: dict, offer_id: str) -> dict | None:
         return None
     f = state["fighter"]
     promoted = offer["tier"] > f["tier"]
+    demoted = offer["tier"] < f["tier"]
     f["contract"] = {
         "org": offer["org"], "tier": offer["tier"],
         "purse": offer["purse"], "bonus": offer["bonus"],
         "fights_left": offer["fights"], "hype_mult": offer["hype_mult"],
     }
-    if promoted:
+    if promoted or demoted:
         f["tier"] = offer["tier"]
-        f["rank"] = C.DIVISION_SIZE
         f["champion"] = False
         f["title_shot"] = False
         f["title_defenses"] = 0
+        # stepping up into unknown territory starts you at the bottom; dropping
+        # down, your name still carries weight, so you re-enter closer to the top
+        f["rank"] = C.DIVISION_SIZE if promoted else max(1, C.DIVISION_SIZE // 3)
         build_division(state["world"], f["weight"], f["tier"], f)
         sync_player(state)
     state.pop("offers", None)

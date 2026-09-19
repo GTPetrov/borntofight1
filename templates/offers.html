@@ -6,7 +6,9 @@
   <div class="grid c3">
     {% for o in offers %}
     <div class="panel" style="margin:0">
-      <h3 style="margin-top:0">{{ o.org }}</h3>
+      <h3 style="margin-top:0">{{ o.org }}
+        {% if o.id in ('up_money', 'up_expo') %}<span class="pill gold">{{ t("Step up") }}</span>
+        {% elif o.id == 'down' %}<span class="pill loss">{{ t("Step down") }}</span>{% endif %}</h3>
       <p class="muted">{{ o.desc }}</p>
       <div class="stat-line"><span>{{ t("Purse") }}</span><b>${{ o.purse }}</b></div>
       <div class="stat-line"><span>{{ t("Win bonus") }}</span><b>${{ o.bonus }}</b></div>

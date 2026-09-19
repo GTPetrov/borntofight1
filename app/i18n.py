@@ -206,6 +206,8 @@ PL: dict[str, str] = {
     "Win bonus": "Bonus za wygraną",
     "Fights on the deal": "Walki w umowie",
     "Exposure": "Ekspozycja",
+    "Step up": "Awans",
+    "Step down": "Degradacja",
 }
 
 
